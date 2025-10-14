@@ -12,7 +12,6 @@ import {
   Stepper,
   Step,
   StepLabel,
-  CircularProgress,
 } from '@mui/material';
 import { ArrowBack, ArrowForward, CheckCircle } from '@mui/icons-material';
 import { PLAYSTYLE_QUESTIONS, PlaystyleAnswers } from '../utils/agent-recommender';

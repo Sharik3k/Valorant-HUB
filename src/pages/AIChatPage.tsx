@@ -72,6 +72,7 @@ const AIChatPage: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [showQuiz, setShowQuiz] = useState(false);
   const [playstyleResults, setPlaystyleResults] = useState<PlaystyleAnswers | null>(null);
+  const [analysisText, setAnalysisText] = useState<string>('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -213,8 +214,8 @@ const AIChatPage: React.FC = () => {
         const results = JSON.parse(saved);
         setPlaystyleResults(results);
         setAnalysisText(generateAnalysisText(results));
-      } catch (e) {
-        console.error('Failed to load playstyle results', e);
+      } catch (error) {
+        console.error('Failed to load playstyle results', error);
       }
     }
   }, []);
@@ -252,7 +253,7 @@ const AIChatPage: React.FC = () => {
         {/* Tabs */}
         <Tabs
           value={currentTab}
-          onChange={(e, newValue) => setCurrentTab(newValue)}
+          onChange={(_e, newValue) => setCurrentTab(newValue)}
           sx={{
             borderTop: '1px solid rgba(255,255,255,0.1)',
             '& .MuiTab-root': {
