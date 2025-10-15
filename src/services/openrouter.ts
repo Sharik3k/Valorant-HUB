@@ -4,7 +4,7 @@ import { OpenRouterRequest, OpenRouterResponse } from '../types/chat';
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 
-const API_KEY = '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';
+const API_KEY = '';
 
 const DEFAULT_MODEL = 'meta-llama/llama-3.2-3b-instruct:free'; 
 
