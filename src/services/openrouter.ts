@@ -4,7 +4,7 @@ import { OpenRouterRequest, OpenRouterResponse } from '../types/chat';
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 
-const API_KEY = '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';
+const API_KEY = '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';
 
 const DEFAULT_MODEL = 'meta-llama/llama-3.2-3b-instruct:free'; 
 
@@ -178,7 +178,7 @@ export class OpenRouterService {
 
 // Helper function to create service instance
 export const createOpenRouterService = (): OpenRouterService => {
-  if (!API_KEY || API_KEY === 'YOUR_API_KEY_HERE') {
+  if (!API_KEY || API_KEY.trim().length < 10) {
     throw new Error('⚠️ Будь ласка, вставте ваш API ключ в src/services/openrouter.ts');
   }
   return new OpenRouterService();

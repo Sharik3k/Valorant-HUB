@@ -87,7 +87,7 @@ const PlaystyleQuiz: React.FC<PlaystyleQuizProps> = ({ onComplete, onCancel }) =
 
       {/* Stepper */}
       <Stepper activeStep={currentStep} sx={{ mb: 4, display: { xs: 'none', md: 'flex' } }}>
-        {PLAYSTYLE_QUESTIONS.map((q, index) => (
+        {PLAYSTYLE_QUESTIONS.map((_, index) => (
           <Step key={index}>
             <StepLabel />
           </Step>

@@ -32,7 +32,7 @@ import ChatMessage from '../components/ChatMessage';
 import PlaystyleQuiz from '../components/PlaystyleQuiz';
 import { Message, ChatState } from '../types/chat';
 import { createOpenRouterService } from '../services/openrouter';
-import { PlaystyleAnswers, generateAnalysisText, recommendAgents } from '../utils/agent-recommender';
+import { PlaystyleAnswers, recommendAgents } from '../utils/agent-recommender';
 
 const AI_SYSTEM_PROMPT = `You are an expert VALORANT coach and AI assistant for VALORANT HUB. You have deep knowledge about all VALORANT agents, their abilities, playstyles, and strategies.
 
@@ -72,7 +72,6 @@ const AIChatPage: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [showQuiz, setShowQuiz] = useState(false);
   const [playstyleResults, setPlaystyleResults] = useState<PlaystyleAnswers | null>(null);
-  const [analysisText, setAnalysisText] = useState<string>('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -181,10 +180,6 @@ const AIChatPage: React.FC = () => {
     setPlaystyleResults(answers);
     setShowQuiz(false);
     
-    // Generate analysis text
-    const analysis = generateAnalysisText(answers);
-    setAnalysisText(analysis);
-    
     // Save to localStorage
     localStorage.setItem('playstyle_results', JSON.stringify(answers));
     
@@ -201,7 +196,6 @@ const AIChatPage: React.FC = () => {
 
   const handleResetAnalysis = () => {
     setPlaystyleResults(null);
-    setAnalysisText('');
     localStorage.removeItem('playstyle_results');
     showSnackbar('Аналіз скинуто', 'info');
   };
@@ -213,7 +207,6 @@ const AIChatPage: React.FC = () => {
       try {
         const results = JSON.parse(saved);
         setPlaystyleResults(results);
-        setAnalysisText(generateAnalysisText(results));
       } catch (error) {
         console.error('Failed to load playstyle results', error);
       }
@@ -253,7 +246,7 @@ const AIChatPage: React.FC = () => {
         {/* Tabs */}
         <Tabs
           value={currentTab}
-          onChange={(_e, newValue) => setCurrentTab(newValue)}
+          onChange={(_, newValue) => setCurrentTab(newValue)}
           sx={{
             borderTop: '1px solid rgba(255,255,255,0.1)',
             '& .MuiTab-root': {
