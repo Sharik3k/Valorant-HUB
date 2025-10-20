@@ -30,18 +30,21 @@ Your ultimate VALORANT companion application with interactive maps, agent guides
 - Performance analytics
 - Achievement system
 
-### 🤖 AI Chat Assistant (Coming Soon)
-- Get personalized gameplay advice
-- Strategy recommendations
-- Real-time match analysis
+### 🤖 AI Chat Assistant ✨ NEW
+- Get personalized gameplay advice powered by OpenRouter
+- Strategy recommendations using free LLaMA/Gemini models
+- Interactive chat interface with conversation history
+- Expert knowledge about agents, maps, and tactics
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: React 18 + TypeScript
 - **Build Tool**: Vite
 - **UI Library**: Material-UI (MUI)
+- **Icons**: Lucide React
 - **Routing**: React Router
 - **Styling**: Emotion + CSS-in-JS
+- **AI Integration**: OpenRouter API (Free Models)
 - **Deployment**: Vercel + GitHub Pages
 
 ## 📁 Project Structure
@@ -79,12 +82,23 @@ cd Valorant-HUB-Final
 # Install dependencies
 npm install
 
+# Setup environment variables
+cp .env.example .env
+# Edit .env and add your OpenRouter API key
+
 # Start development server
 npm run dev
 
 # Build for production
 npm run build
 ```
+
+### 🤖 AI Assistant Setup
+See [AI_ASSISTANT_SETUP.md](AI_ASSISTANT_SETUP.md) for detailed instructions on:
+- Getting a free OpenRouter API key
+- Configuring environment variables
+- Deploying to Vercel with AI features
+- Using different free AI models
 
 ## 📚 Documentation
 
@@ -98,10 +112,12 @@ npm run build
 - [x] Interactive Maps with Modal Details
 - [x] Responsive Design
 - [x] Agent Information Pages
-- [ ] AI Chat Integration
-- [ ] Player Statistics
-- [ ] VCT Tournament Data
+- [x] AI Chat Integration with OpenRouter
+- [x] Free AI Models (LLaMA, Gemini, Phi-3)
+- [ ] Player Statistics Integration
+- [ ] VCT Tournament Live Data
 - [ ] Mobile App Version
+- [ ] Voice Chat with AI
 
 ## 🤝 Contributing
 

@@ -2,7 +2,6 @@
   "name": "valorant-hub-final",
   "version": "1.0.0",
   "description": "VALORANT HUB - Your ultimate VALORANT companion",
-
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -23,6 +22,7 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.1",
     "@mui/material": "^5.15.1",
+    "lucide-react": "^0.546.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1"
