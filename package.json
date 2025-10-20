@@ -2,13 +2,11 @@
   "name": "valorant-hub-final",
   "version": "1.0.0",
   "description": "VALORANT HUB - Your ultimate VALORANT companion",
-  "main": "dist-electron/main.js",
+
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "preview": "vite preview"
   },
   "keywords": [
     "valorant",
@@ -30,12 +28,9 @@
     "react-router-dom": "^6.20.1"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
-    "@vercel/node": "^3.2.29",
     "@vitejs/plugin-react": "^4.2.1",
-    "gh-pages": "^6.3.0",
     "typescript": "^5.3.3",
     "vite": "^5.0.8"
   }
