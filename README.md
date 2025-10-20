@@ -122,6 +122,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Vercel for hosting platform
 - Community for feedback and suggestions
 
+## 🚀 One-Click Deploy
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Sharik3k/Valorant-HUB)
+
 ---
 
 **Made with ❤️ for VALORANT players**
