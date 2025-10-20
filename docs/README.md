@@ -2,72 +2,72 @@
 
 Welcome to the VALORANT HUB documentation! Here you'll find everything you need to understand, set up, and deploy the application.
 
-## 📖 Table of Contents
+## 📁 Documentation Structure
 
 ### 🚀 [Deployment](deployment/)
+Complete guides for deploying the application to various platforms:
 - [Vercel Deployment Guide](deployment/README-VERCEL.md)
 - [Quick Deploy Checklist](deployment/QUICK_DEPLOY_CHECKLIST.md)
 - [Django Backend Deployment](deployment/DJANGO_DEPLOY_GUIDE.md)
-- [Vercel Backend Setup](deployment/VERCEL_BACKEND_DEPLOY.md)
+- [Vercel Backend Functions](deployment/VERCEL_BACKEND_DEPLOY.md)
 
 ### ⚙️ [Setup](setup/)
+Step-by-step setup instructions for development:
 - [API Setup Instructions](setup/API_SETUP_INSTRUCTION.md)
-- [OpenRouter Setup Guide](setup/OPENROUTER_SETUP_GUIDE.md)
+- [OpenRouter API Setup](setup/OPENROUTER_SETUP_GUIDE.md)
+- [AI Chat Setup](setup/AI_CHAT_SETUP.md)
 - [Backend Quick Start](setup/BACKEND_QUICK_START.md)
 - [Django Quick Start](setup/DJANGO_QUICK_START.md)
-- [AI Chat Setup](setup/AI_CHAT_SETUP.md)
 
 ### 🎯 [Features](features/)
-- [AI Chat Feature](features/AI_CHAT_README.md)
+Detailed documentation about application features:
+- [AI Chat Integration](features/AI_CHAT_README.md)
 - [Playstyle Analysis](features/PLAYSTYLE_ANALYSIS_FEATURE.md)
+- [Feature Implementation Guide](features/05-Features-Implementation.md)
 - [Integration Status](features/INTEGRATION_COMPLETE.md)
 
 ### 🔧 [Technical](technical/)
+Technical documentation and architecture details:
+- [System Architecture](technical/01-System-Architecture.md)
+- [Installation and Updates](technical/02-Installation-and-Updates.md)
+- [Riot Games Integration](technical/03-Riot-Games-Integration.md)
+- [Database Schema](technical/04-Database-Schema.md)
+- [Codebase Structure](technical/06-Codebase-Structure.md)
+- [Implementation Summary](technical/07-Implementation-Summary.md)
 - [Backend Comparison](technical/BACKEND_COMPARISON.md)
 - [Security Comparison](technical/SECURITY_COMPARISON.md)
 - [Full Stack Overview](technical/FULL_STACK_README.md)
-- [Migration Summary](technical/MIGRATION_SUMMARY.md)
-- [File Lists](technical/)
 
-## 🎯 Quick Links
+## 🎯 Quick Navigation
 
 ### For Developers
-- [Setup Instructions](setup/) - Get started with development
-- [Technical Documentation](technical/) - Architecture and implementation details
-- [API Documentation](setup/API_SETUP_INSTRUCTION.md) - Backend API setup
+1. Start with [Setup Instructions](setup/)
+2. Review [System Architecture](technical/01-System-Architecture.md)
+3. Check [Codebase Structure](technical/06-Codebase-Structure.md)
 
 ### For Deployment
-- [Vercel Deployment](deployment/README-VERCEL.md) - Deploy to Vercel
-- [Quick Deploy](deployment/QUICK_DEPLOY_CHECKLIST.md) - Fast deployment checklist
-- [Backend Options](technical/BACKEND_COMPARISON.md) - Choose your backend
+1. Read [Quick Deploy Checklist](deployment/QUICK_DEPLOY_CHECKLIST.md)
+2. Follow [Vercel Deployment Guide](deployment/README-VERCEL.md)
+3. Configure [API Setup](setup/API_SETUP_INSTRUCTION.md)
 
 ### For Features
-- [AI Chat](features/AI_CHAT_README.md) - AI-powered chat assistant
-- [Maps System](../src/pages/MapsPage.tsx) - Interactive maps with callouts
-- [Agent Guides](../src/pages/AgentsPage.tsx) - Comprehensive agent information
+1. Explore [Features Overview](features/)
+2. Check [AI Chat Integration](features/AI_CHAT_README.md)
+3. Review [Implementation Status](features/INTEGRATION_COMPLETE.md)
 
-## 🚀 Getting Started
+## 🆘 Need Help?
 
-1. **Choose your setup**:
-   - Frontend only: [Quick Start](#quick-start)
-   - With AI features: [AI Chat Setup](setup/AI_CHAT_SETUP.md)
-   - Full stack: [Backend Setup](setup/BACKEND_QUICK_START.md)
+- Check the relevant documentation section above
+- Look for troubleshooting guides in each section
+- Open an issue on GitHub if you can't find what you need
 
-2. **Deploy your app**:
-   - [Vercel (Recommended)](deployment/README-VERCEL.md)
-   - [GitHub Pages](deployment/DEPLOYMENT_GUIDE.md)
+## 📝 Contributing to Documentation
 
-3. **Add features**:
-   - [AI Chat Integration](features/AI_CHAT_README.md)
-   - [Custom Maps](features/)
-
-## 📞 Support
-
-If you need help:
-1. Check the relevant documentation section
-2. Look at [Technical Documentation](technical/)
-3. Open an issue on GitHub
-4. Contact the development team
+Help us improve the documentation:
+1. Fork the repository
+2. Update or add documentation files
+3. Follow the existing structure and formatting
+4. Submit a pull request
 
 ---
 
