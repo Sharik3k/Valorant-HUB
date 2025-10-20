@@ -1,18 +1,14 @@
-// OpenRouter AI Service для чат-асистента
+// AI Service для чат-асистента
+// 🔒 БЕЗПЕЧНА версія - використовує Vercel Serverless Function
+// API ключ зберігається на сервері і не доступний в браузері
+
 export interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
 }
 
-interface OpenRouterResponse {
-  id: string;
-  choices: Array<{
-    message: {
-      role: string;
-      content: string;
-    };
-    finish_reason: string;
-  }>;
+interface APIResponse {
+  message: string;
   usage?: {
     prompt_tokens: number;
     completion_tokens: number;
@@ -21,58 +17,40 @@ interface OpenRouterResponse {
 }
 
 class AIService {
-  private apiKey: string;
-  private model: string;
-  private baseURL = 'https://openrouter.ai/api/v1';
+  private apiEndpoint: string;
 
   constructor() {
-    this.apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || '';
-    this.model = import.meta.env.VITE_AI_MODEL || 'meta-llama/llama-3.2-3b-instruct:free';
+    // Використовуємо Vercel Serverless Function
+    // В продакшені: /api/chat
+    // Локально: http://localhost:5173/api/chat (через Vite proxy)
+    this.apiEndpoint = '/api/chat';
   }
 
   async sendMessage(messages: Message[]): Promise<string> {
-    if (!this.apiKey || this.apiKey === 'your_openrouter_api_key_here') {
-      throw new Error('OpenRouter API ключ не налаштовано. Додайте VITE_OPENROUTER_API_KEY в .env файл.');
-    }
-
     try {
-      const response = await fetch(`${this.baseURL}/chat/completions`, {
+      const response = await fetch(this.apiEndpoint, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': window.location.origin,
-          'X-Title': 'VALORANT HUB AI Assistant',
         },
-        body: JSON.stringify({
-          model: this.model,
-          messages: [
-            {
-              role: 'system',
-              content: 'Ти — AI асистент для VALORANT HUB. Допомагаєш гравцям з питаннями про гру VALORANT: агенти, мапи, зброя, стратегії, VCT змагання. Відповідай коротко та по суті українською мовою.'
-            },
-            ...messages
-          ],
-          temperature: 0.7,
-          max_tokens: 500,
-        }),
+        body: JSON.stringify({ messages }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.error?.message || 
-          `OpenRouter API помилка: ${response.status} ${response.statusText}`
+          errorData.error || 
+          `API помилка: ${response.status} ${response.statusText}`
         );
       }
 
-      const data: OpenRouterResponse = await response.json();
+      const data: APIResponse = await response.json();
       
-      if (!data.choices || data.choices.length === 0) {
+      if (!data.message) {
         throw new Error('Отримано пусту відповідь від AI');
       }
 
-      return data.choices[0].message.content;
+      return data.message;
     } catch (error) {
       if (error instanceof Error) {
         console.error('AI Service Error:', error);
@@ -83,11 +61,12 @@ class AIService {
   }
 
   isConfigured(): boolean {
-    return !!(this.apiKey && this.apiKey !== 'your_openrouter_api_key_here');
+    // Завжди true, оскільки конфігурація на сервері
+    return true;
   }
 
   getModel(): string {
-    return this.model;
+    return 'Serverless API';
   }
 }
 
