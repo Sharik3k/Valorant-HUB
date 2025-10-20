@@ -1,22 +1,18 @@
-// OpenRouter API Service
-import { OpenRouterRequest, OpenRouterResponse } from '../types/chat';
+// OpenRouter API Service - Django Backend Version (Secure)
+// API ключ захищений на Django сервері!
+import { OpenRouterResponse } from '../types/chat';
 
-const OPENROUTER_API_URL = import.meta.env.VITE_OPENROUTER_API_URL || 'https://openrouter.ai/api/v1/chat/completions';
+const DEFAULT_MODEL = import.meta.env.VITE_DEFAULT_AI_MODEL || 'meta-llama/llama-3.2-3b-instruct:free';
 
-// ⚠️ НЕ ЗБЕРІГАЙТЕ API КЛЮЧ ТУТ! Використовуйте .env файл
-const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
-
-const DEFAULT_MODEL = import.meta.env.VITE_DEFAULT_AI_MODEL || 'meta-llama/llama-3.2-3b-instruct:free'; 
+// Django Backend API URL
+const BACKEND_URL = import.meta.env.VITE_DJANGO_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_CHAT_API = `${BACKEND_URL}/api/chat/`;
+const BACKEND_MODELS_API = `${BACKEND_URL}/api/models/`;
 
 export class OpenRouterService {
-  private apiKey: string;
-  private appName: string;
-  private appUrl: string;
-
   constructor() {
-    this.apiKey = API_KEY;
-    this.appName = import.meta.env.VITE_APP_NAME || 'Valorant-HUB';
-    this.appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    // API ключ більше не потрібен на клієнті!
+    // Він захищений на Django сервері
   }
 
   async sendMessage(
@@ -29,21 +25,19 @@ export class OpenRouterService {
     }
   ): Promise<string> {
     try {
-      const requestBody: OpenRouterRequest = {
-        model,
+      const requestBody = {
         messages,
+        model,
         temperature: options?.temperature ?? 0.1,
         max_tokens: options?.max_tokens ?? 4000,
         top_p: options?.top_p ?? 1,
       };
 
-      const response = await fetch(OPENROUTER_API_URL, {
+      // Запит до Django backend API
+      const response = await fetch(BACKEND_CHAT_API, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': this.appUrl,
-          'X-Title': this.appName,
         },
         body: JSON.stringify(requestBody),
       });
@@ -51,8 +45,8 @@ export class OpenRouterService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.error?.message || 
-          `OpenRouter API Error: ${response.status} ${response.statusText}`
+          errorData.error || 
+          `API Error: ${response.status} ${response.statusText}`
         );
       }
 
@@ -64,11 +58,11 @@ export class OpenRouterService {
 
       return data.choices[0].message.content;
     } catch (error) {
-      console.error('OpenRouter API Error:', error);
+      console.error('Django Backend API Error:', error);
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Failed to communicate with OpenRouter API');
+      throw new Error('Failed to communicate with Django backend API');
     }
   }
 
@@ -84,22 +78,20 @@ export class OpenRouterService {
     }
   ): Promise<void> {
     try {
-      const requestBody: OpenRouterRequest = {
-        model,
+      const requestBody = {
         messages,
+        model,
         temperature: options?.temperature ?? 0.7,
         max_tokens: options?.max_tokens ?? 2000,
         top_p: options?.top_p ?? 1,
         stream: true,
       };
 
-      const response = await fetch(OPENROUTER_API_URL, {
+      // Запит до Django backend API
+      const response = await fetch(BACKEND_CHAT_API, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': this.appUrl,
-          'X-Title': this.appName,
         },
         body: JSON.stringify(requestBody),
       });
@@ -107,8 +99,8 @@ export class OpenRouterService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.error?.message || 
-          `OpenRouter API Error: ${response.status} ${response.statusText}`
+          errorData.error || 
+          `API Error: ${response.status} ${response.statusText}`
         );
       }
 
@@ -146,21 +138,19 @@ export class OpenRouterService {
         }
       }
     } catch (error) {
-      console.error('OpenRouter Stream Error:', error);
+      console.error('Django Backend Stream Error:', error);
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Failed to stream response from OpenRouter API');
+      throw new Error('Failed to stream response from Django backend API');
     }
   }
 
   // Get available models
   async getModels(): Promise<any[]> {
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/models', {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-        },
+      const response = await fetch(BACKEND_MODELS_API, {
+        method: 'GET',
       });
 
       if (!response.ok) {
@@ -178,9 +168,6 @@ export class OpenRouterService {
 
 // Helper function to create service instance
 export const createOpenRouterService = (): OpenRouterService => {
-  if (!API_KEY || API_KEY.trim().length < 10) {
-    throw new Error('⚠️ Будь ласка, вставте ваш API ключ в src/services/openrouter.ts');
-  }
   return new OpenRouterService();
 };
 

@@ -31,7 +31,7 @@ import { useNavigate } from 'react-router-dom';
 import ChatMessage from '../components/ChatMessage';
 import PlaystyleQuiz from '../components/PlaystyleQuiz';
 import { Message, ChatState } from '../types/chat';
-import { createOpenRouterService } from '../services/openrouter';
+import { createOpenRouterService } from '../services/openrouter-django';
 import { PlaystyleAnswers, recommendAgents } from '../utils/agent-recommender';
 
 const AI_SYSTEM_PROMPT = `You are an expert VALORANT coach and AI assistant for VALORANT HUB. You have deep knowledge about all VALORANT agents, their abilities, playstyles, and strategies.
