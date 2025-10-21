@@ -15,5 +15,20 @@ export default defineConfig({
     assetsDir: 'assets',
     sourcemap: false,
     minify: 'terser'
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        configure: (proxy, options) => {
+          // Якщо немає локального API сервера, показати помилку
+          proxy.on('error', (err, req, res) => {
+            console.log('⚠️ API Proxy Error: Локальний API сервер не запущено');
+            console.log('💡 Використовуйте: vercel dev');
+          });
+        }
+      }
+    }
   }
 })

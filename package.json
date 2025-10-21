@@ -1,11 +1,4 @@
 {
-<<<<<<< HEAD
-  "dependencies": {
-    "lucide-react": "^0.546.0"
-  },
-  "devDependencies": {
-    "@vercel/node": "^5.4.1"
-=======
   "name": "valorant-hub-final",
   "version": "1.0.0",
   "description": "VALORANT HUB - Your ultimate VALORANT companion",
@@ -41,6 +34,5 @@
     "@vitejs/plugin-react": "^4.2.1",
     "typescript": "^5.3.3",
     "vite": "^5.0.8"
->>>>>>> 653d156b62965287a688a6ef24ec4a2ec5329b52
   }
 }
