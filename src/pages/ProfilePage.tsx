@@ -19,11 +19,18 @@ export default function ProfilePage() {
     setData(null);
     try {
       const urlParam = input.includes('http') || input.includes('tracker.gg') ? `url=${encodeURIComponent(input.trim())}` : `riotId=${encodeURIComponent(input.trim())}`;
-      const r = await fetch(`/api/valorant-stats?${urlParam}&region=${encodeURIComponent(region)}`);
+      const apiUrl = `/api/valorant-stats?${urlParam}&region=${encodeURIComponent(region)}`;
+      console.log('Fetching:', apiUrl);
+      const r = await fetch(apiUrl);
       const j = await r.json();
-      if (!r.ok) throw new Error(j?.error || 'Failed to load stats');
+      console.log('Response:', j);
+      if (!r.ok) {
+        const errorMsg = typeof j?.error === 'string' ? j.error : JSON.stringify(j?.error || j);
+        throw new Error(errorMsg);
+      }
       setData(j);
     } catch (e: any) {
+      console.error('Fetch error:', e);
       setError(e?.message || 'Unknown error');
     } finally {
       setLoading(false);

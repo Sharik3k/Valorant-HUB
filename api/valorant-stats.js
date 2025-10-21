@@ -51,16 +51,21 @@ module.exports = async (req, res) => {
     }
 
     if (!name || !tag) {
+      console.error('Parsing failed. URL:', url, 'RiotID:', riotId);
       return res.status(400).json({ error: 'Provide tracker URL or Riot ID in format Name#TAG' });
     }
+
+    console.log('Parsed:', { name, tag, region: reg });
 
     const base = 'https://api.henrikdev.xyz/valorant';
     const mmrUrl = `${base}/v1/mmr/${encodeURIComponent(reg)}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`;
     const matchesUrl = `${base}/v3/matches/${encodeURIComponent(reg)}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=5`;
 
+    console.log('Fetching MMR:', mmrUrl);
     const mmrResp = await fetch(mmrUrl);
     if (!mmrResp.ok) {
       const e = await mmrResp.json().catch(() => ({}));
+      console.error('MMR API error:', mmrResp.status, e);
       return res.status(mmrResp.status).json({ error: e?.errors || e?.message || 'Failed to fetch mmr' });
     }
     const mmr = await mmrResp.json();
