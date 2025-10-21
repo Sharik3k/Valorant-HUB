@@ -1,8 +1,46 @@
 {
+<<<<<<< HEAD
   "dependencies": {
     "lucide-react": "^0.546.0"
   },
   "devDependencies": {
     "@vercel/node": "^5.4.1"
+=======
+  "name": "valorant-hub-final",
+  "version": "1.0.0",
+  "description": "VALORANT HUB - Your ultimate VALORANT companion",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "valorant",
+    "gaming",
+    "esports"
+  ],
+  "author": "VALORANT-HUB Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.1",
+    "@mui/material": "^5.15.1",
+    "lucide-react": "^0.546.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "@vercel/node": "^5.4.1",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8"
+>>>>>>> 653d156b62965287a688a6ef24ec4a2ec5329b52
   }
 }
