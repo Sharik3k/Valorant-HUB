@@ -26,16 +26,13 @@ module.exports = async (req, res) => {
       try {
         const u = new URL(url);
         const parts = u.pathname.split('/').filter(Boolean);
-        const idx = parts.findIndex(p => p.toLowerCase() === 'valorant');
-        if (idx !== -1) {
-          if (parts[idx + 1]) reg = parts[idx + 1].toLowerCase();
-          const idPart = parts[idx + 2] || '';
+        // Шукаємо індекс після "riot" в URL типу /valorant/profile/riot/Name%23TAG/overview
+        const riotIdx = parts.findIndex(p => p.toLowerCase() === 'riot');
+        if (riotIdx !== -1 && parts[riotIdx + 1]) {
+          // Riot ID знаходиться після "riot"
+          const idPart = parts[riotIdx + 1];
           const decoded = decodeURIComponent(idPart);
-          if (decoded.includes('%23')) {
-            const [n, t] = decoded.split('%23');
-            name = n;
-            tag = t;
-          } else if (decoded.includes('#')) {
+          if (decoded.includes('#')) {
             const [n, t] = decoded.split('#');
             name = n;
             tag = t;
