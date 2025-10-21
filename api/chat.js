@@ -42,7 +42,7 @@ module.exports = async (req, res) => {
     // Додати системний промпт
     const systemMessage = {
       role: 'system',
-      content: 'Ти — AI асистент для VALORANT HUB. Допомагаєш гравцям з питаннями про гру VALORANT: агенти, мапи, зброя, стратегії, VCT змагання. Відповідай коротко та по суті українською мовою.'
+      content: 'Ти — AI асистент для VALORANT HUB. Допомагаєш гравцям з питаннями про гру VALORANT: агенти, мапи, зброя, стратегії, VCT змагання. Відповідай коротко та по суті українською мовою та англійською мовою,залежно від мови якою робить запит користувач.'
     };
 
     // Виконати запит до OpenRouter API
@@ -59,8 +59,8 @@ module.exports = async (req, res) => {
       body: JSON.stringify({
         model,
         messages: [systemMessage, ...messages],
-        temperature: 0.7,
-        max_tokens: 500,
+        temperature: 0.1,
+        max_tokens: 2000,
       }),
     });
 
