@@ -6,6 +6,8 @@ import MapsPage from './pages/MapsPage';
 import AgentsPage from './pages/AgentsPage';
 import VCTPage from './pages/VCTPage';
 import ProfilePage from './pages/ProfilePage';
+import ChatAssistant from './components/ChatAssistant';
+
 
 const darkTheme = createTheme({
   palette: {
@@ -61,8 +63,10 @@ function App() {
           <Route path="/agents" element={<AgentsPage />} />
           <Route path="/vct" element={<VCTPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <ChatAssistant />
       </Router>
     </ThemeProvider>
   );

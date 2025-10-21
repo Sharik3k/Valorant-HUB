@@ -1,6 +1,6 @@
 import { Box, Container, Typography, Button, Grid, Card, CardContent } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { Map, Person, EmojiEvents, TrendingUp } from '@mui/icons-material';
+import { Map, Person, EmojiEvents, TrendingUp, SmartToy } from '@mui/icons-material';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -33,6 +33,13 @@ export default function HomePage() {
       description: 'Track your stats, progress and competitive rank',
       path: '/profile',
       gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+    },
+    {
+      icon: <SmartToy sx={{ fontSize: 60 }} />,
+      title: 'AI Chat Assistant',
+      description: 'Get instant help with AI-powered chat using OpenRouter',
+      path: '/ai-chat',
+      gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
     }
   ];
 

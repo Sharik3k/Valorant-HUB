@@ -1,0 +1,92 @@
+# Git Commands - Copy & Paste Ready
+# Просто скопіюйте та вставте ці команди в термінал
+
+# ==========================================
+# ВАРІАНТ 1: Додати всі файли одразу
+# ==========================================
+
+git add .
+
+
+# ==========================================
+# ВАРІАНТ 2: Додати файли окремо (рекомендовано)
+# ==========================================
+
+# Нові файли - Код
+git add src/types/chat.ts
+git add src/services/openrouter.ts
+git add src/components/ChatMessage.tsx
+git add src/pages/AIChatPage.tsx
+
+# Змінені файли - Код
+git add src/App.tsx
+git add src/pages/HomePage.tsx
+
+# Конфігурація
+git add .env.example
+git add .gitignore
+
+# Документація
+git add AI_CHAT_README.md
+git add AI_CHAT_QUICKSTART.md
+git add AI_CHAT_SETUP.md
+git add AI_CHAT_FILES.txt
+git add OPENROUTER_SETUP_GUIDE.md
+git add GIT_BRANCH_COMMANDS.md
+git add INTEGRATION_COMPLETE.md
+git add git-add-commands.txt
+
+
+# ==========================================
+# ПОВНА ПОСЛІДОВНІСТЬ КОМАНД
+# ==========================================
+
+# 1. Створити гілку
+git checkout -b feature/ai-chat-integration
+
+# 2. Додати файли (оберіть варіант 1 або 2 вище)
+git add .
+
+# 3. Коміт
+git commit -m "feat: Add AI Chat Assistant with OpenRouter API integration
+
+✨ Features:
+- AI chat page with real-time messaging
+- OpenRouter API service integration
+- Support for multiple AI models (free and paid)
+- Chat history and export functionality
+- Settings dialog for API key configuration
+- Modern Material-UI design
+- Comprehensive documentation in Ukrainian
+
+📦 New Files:
+- src/types/chat.ts
+- src/services/openrouter.ts
+- src/components/ChatMessage.tsx
+- src/pages/AIChatPage.tsx
+
+📝 Modified Files:
+- src/App.tsx
+- src/pages/HomePage.tsx
+- .gitignore
+
+📚 Documentation:
+- AI_CHAT_README.md
+- AI_CHAT_QUICKSTART.md
+- AI_CHAT_SETUP.md
+- OPENROUTER_SETUP_GUIDE.md
+- GIT_BRANCH_COMMANDS.md
+- INTEGRATION_COMPLETE.md"
+
+# 4. Push на GitHub
+git push -u origin feature/ai-chat-integration
+
+
+# ==========================================
+# ПІСЛЯ PUSH - Створити PR на GitHub
+# ==========================================
+
+# 1. Перейти на https://github.com/Sharik3k/Valorant-HUB
+# 2. Натиснути "Compare & pull request"
+# 3. Заповнити Title та Description (шаблон в GIT_BRANCH_COMMANDS.md)
+# 4. Натиснути "Create pull request"

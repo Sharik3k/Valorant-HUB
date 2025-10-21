@@ -156,40 +156,6 @@ export default function MapsPage() {
       bestAgents: ['Viper', 'Sova', 'Jett', 'Chamber']
     },
     {
-      name: 'Fracture',
-      location: 'Fracture, (New Mexico, USA)',
-      sites: ['A', 'B'],
-      description: 'A top secret research facility split apart by a failed experiment',
-      detailedDescription: 'Fracture has a unique H-shaped layout where defenders spawn in the middle and attackers can approach from both sides.',
-      image: 'https://static.wikia.nocookie.net/valorant/images/f/fc/Loading_Screen_Fracture.png',
-      minimap: 'https://static.wikia.nocookie.net/valorant/images/1/18/Fracture_minimap.png',
-      callouts: ['A Main', 'A Rope', 'A Site', 'B Main', 'B Arcade', 'B Site', 'Mid Canteen', 'Zipline'],
-      tips: [
-        'Coordinate pincer attacks from both sides',
-        'Use ziplines for quick rotations',
-        'Rope provides alternative A site access',
-        'Arcade control is key for B site'
-      ],
-      bestAgents: ['Breach', 'Brimstone', 'Neon', 'Killjoy']
-    },
-    {
-      name: 'Pearl',
-      location: 'Pearl, (Lisbon, Portugal)',
-      sites: ['A', 'B'],
-      description: 'Attackers will send noise and signals through the paths',
-      detailedDescription: 'Pearl is an underwater city with clean sightlines and multiple rotation paths. It rewards tactical gameplay and team coordination.',
-      image: 'https://static.wikia.nocookie.net/valorant/images/a/af/Loading_Screen_Pearl.png',
-      minimap: 'https://static.wikia.nocookie.net/valorant/images/6/63/Pearl_minimap.png',
-      callouts: ['A Main', 'A Art', 'A Site', 'B Main', 'B Ramp', 'Mid Plaza', 'Mid Connector', 'Mid Link'],
-      tips: [
-        'Control Mid Plaza for rotations',
-        'Art provides strong A site angles',
-        'Use Connector for flanking',
-        'B Ramp is a key chokepoint'
-      ],
-      bestAgents: ['Fade', 'Omen', 'Jett', 'Killjoy']
-    },
-    {
       name: 'Lotus',
       location: 'Lotus, (Western Ghats, India)',
       sites: ['A', 'B', 'C'],
