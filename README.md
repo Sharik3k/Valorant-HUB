@@ -4,8 +4,7 @@ Your ultimate VALORANT companion application with interactive maps, agent guides
 
 ## 🚀 Live Demo
 
-- **Production**: [Coming Soon on Vercel]
-- **GitHub Pages**: https://Sharik3k.github.io/Valorant-HUB
+- **Production**: https://valorant-gg2uq8gpx-vladyslavsenkiv-gmailcoms-projects.vercel.app/
 
 ## ✨ Features
 
