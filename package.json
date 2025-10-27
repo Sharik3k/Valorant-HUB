@@ -1,42 +1,39 @@
 {
-  "name": "valorant-hub-final",
+  "name": "valorant-hub",
   "version": "1.0.0",
-  "description": "VALORANT HUB - Your ultimate VALORANT companion",
+  "description": "Valorant HUB - AI-powered gaming assistant with OpenAI function calling",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
+    "install:all": "npm install --workspaces",
+    "clean": "rm -rf node_modules frontend/node_modules backend/node_modules"
   },
   "keywords": [
     "valorant",
     "gaming",
-    "esports"
+    "esports",
+    "ai",
+    "openai"
   ],
   "author": "VALORANT-HUB Team",
   "license": "MIT",
   "engines": {
     "node": "20.x"
   },
-  "dependencies": {
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.15.1",
-    "@mui/material": "^5.15.1",
-    "lucide-react": "^0.546.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1"
-  },
   "devDependencies": {
-    "@types/react": "^18.2.45",
-    "@types/react-dom": "^18.2.18",
-    "@vercel/node": "^5.4.1",
-    "@vitejs/plugin-react": "^4.2.1",
-    "typescript": "^5.3.3",
-    "vite": "^5.0.8"
+    "concurrently": "^8.2.2"
   },
-  "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.28.1"
-  }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sharik3k/Valorant-HUB.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Sharik3k/Valorant-HUB/issues"
+  },
+  "homepage": "https://github.com/Sharik3k/Valorant-HUB#readme"
 }
-
