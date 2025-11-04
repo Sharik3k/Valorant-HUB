@@ -14,18 +14,18 @@ const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#ffffff',
+      main: '#ff4655', // VALORANT червоний
     },
     secondary: {
-      main: '#a1a1a1',
+      main: '#0f1923', // VALORANT темно-синій
     },
     background: {
-      default: '#111111',
-      paper: '#1c1c1c',
+      default: '#0f1923', // Темно-синій фон
+      paper: '#1c2733', // Трохи світліший синій
     },
     text: {
-      primary: '#f5f5f5',
-      secondary: '#a1a1a1',
+      primary: '#ece8e1', // Світло-бежевий текст
+      secondary: '#9da3a8', // Сірий текст
     },
   },
   typography: {
