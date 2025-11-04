@@ -1,7 +1,7 @@
-// Vercel Serverless Function для безпечної роботи з Gemini API
+// Vercel Serverless Function для безпечної роботи з OpenRouter API
 // API ключ зберігається на сервері і не доступний в браузері
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 
 module.exports = async (req, res) => {
   // CORS headers для локального розвитку
@@ -25,11 +25,12 @@ module.exports = async (req, res) => {
 
   try {
     // Отримати API ключ з Environment Variables (безпечно, тільки на сервері)
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    const model = process.env.AI_MODEL || 'meta-llama/llama-3.2-3b-instruct:free';
 
     if (!apiKey) {
       return res.status(500).json({ 
-        error: 'Gemini API key не налаштовано на сервері' 
+        error: 'OpenRouter API key не налаштовано на сервері' 
       });
     }
 
@@ -40,33 +41,40 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Invalid messages format' });
     }
 
-    // Ініціалізувати Gemini
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    // Додати системний промпт
+    const systemMessage = {
+      role: 'system',
+      content: 'Ти — AI асистент для VALORANT HUB. Допомагаєш гравцям з питаннями про гру VALORANT: агенти, мапи, зброя, стратегії, VCT змагання. Відповідай коротко та по суті українською мовою та англійською мовою, залежно від мови якою робить запит користувач.'
+    };
 
-    // Сформувати промпт з усіх повідомлень
-    const systemPrompt = 'Ти — AI асистент для VALORANT HUB. Допомагаєш гравцям з питаннями про гру VALORANT: агенти, мапи, зброя, стратегії, VCT змагання. Відповідай коротко та по суті українською мовою та англійською мовою, залежно від мови якою робить запит користувач.';
-    
-    // Об'єднати всі повідомлення в один промпт
-    const userMessages = messages
-      .filter(m => m.role === 'user')
-      .map(m => m.content)
-      .join('\n');
-    
-    const fullPrompt = `${systemPrompt}\n\nКористувач: ${userMessages}`;
+    // Ініціалізувати OpenAI клієнт для OpenRouter
+    const openai = new OpenAI({
+      apiKey: apiKey,
+      baseURL: 'https://openrouter.ai/api/v1',
+      defaultHeaders: {
+        'HTTP-Referer': process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}` 
+          : 'http://localhost:5173',
+        'X-Title': 'VALORANT HUB AI Assistant',
+      }
+    });
 
-    // Виконати запит до Gemini API
-    const result = await model.generateContent(fullPrompt);
-    const response = result.response;
-    const text = response.text();
+    // Виконати запит до OpenRouter API
+    const response = await openai.chat.completions.create({
+      model,
+      messages: [systemMessage, ...messages],
+      temperature: 0.7,
+      max_tokens: 2000,
+    });
 
-    if (!text) {
-      throw new Error('Empty response from Gemini');
+    if (!response.choices || response.choices.length === 0) {
+      throw new Error('Empty response from AI');
     }
 
     // Повернути відповідь клієнту
     return res.status(200).json({
-      message: text,
+      message: response.choices[0].message.content,
+      usage: response.usage,
     });
 
   } catch (error) {
