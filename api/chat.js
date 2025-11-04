@@ -1,4 +1,4 @@
-// Vercel Serverless Function для безпечної роботи з OpenAI API
+// Vercel Serverless Function для безпечної роботи з OpenRouter API
 // API ключ зберігається на сервері і не доступний в браузері
 
 const OpenAI = require('openai');
@@ -25,12 +25,13 @@ module.exports = async (req, res) => {
 
   try {
     // Отримати API ключ з Environment Variables (безпечно, тільки на сервері)
-    const apiKey = process.env.OPENAI_API_KEY;
-    const model = process.env.AI_MODEL || 'gpt-3.5-turbo';
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    // Використовуємо найкращу безкоштовну модель - Google Gemini 2.0 Flash
+    const model = process.env.AI_MODEL || 'google/gemini-2.0-flash-exp:free';
 
     if (!apiKey) {
       return res.status(500).json({ 
-        error: 'OpenAI API key не налаштовано на сервері' 
+        error: 'OpenRouter API key не налаштовано на сервері' 
       });
     }
 
@@ -47,12 +48,19 @@ module.exports = async (req, res) => {
       content: 'Ти — AI асистент для VALORANT HUB. Допомагаєш гравцям з питаннями про гру VALORANT: агенти, мапи, зброя, стратегії, VCT змагання. Відповідай коротко та по суті українською мовою та англійською мовою, залежно від мови якою робить запит користувач.'
     };
 
-    // Ініціалізувати OpenAI клієнт
+    // Ініціалізувати OpenAI клієнт для OpenRouter
     const openai = new OpenAI({
       apiKey: apiKey,
+      baseURL: 'https://openrouter.ai/api/v1',
+      defaultHeaders: {
+        'HTTP-Referer': process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}` 
+          : 'http://localhost:5173',
+        'X-Title': 'VALORANT HUB AI Assistant',
+      }
     });
 
-    // Виконати запит до OpenAI API
+    // Виконати запит до OpenRouter API
     const response = await openai.chat.completions.create({
       model,
       messages: [systemMessage, ...messages],
