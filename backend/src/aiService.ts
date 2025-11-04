@@ -270,7 +270,7 @@ export async function getEmbedding(text: string): Promise<number[]> {
 export async function processUserMessage(message: string) {
   console.log(`[AI Service] Processing message: "${message}"`);
   try {
-    const model = getGenAI().getGenerativeModel({ model: "models/gemini-pro" });
+    const model = getGenAI().getGenerativeModel({ model: "gemini-pro" });
     
     const prompt = `You are a helpful Valorant assistant. Your goal is to provide accurate and strategic advice to players. 
     
