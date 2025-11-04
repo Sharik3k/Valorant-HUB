@@ -1,14 +1,19 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { AGENTS_DATA, MAPS, AGENT_WINRATES } from './agentsData';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-  defaultHeaders: {
-    "HTTP-Referer": "https://valorant-hub.vercel.app",
-    "X-Title": "Valorant HUB"
+// Initialize Gemini API (lazy loading)
+let genAI: GoogleGenerativeAI | null = null;
+
+function getGenAI(): GoogleGenerativeAI {
+  if (!genAI) {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error('GEMINI_API_KEY is not set');
+    }
+    genAI = new GoogleGenerativeAI(apiKey);
   }
-});
+  return genAI;
+}
 
 export interface GetAgentsForMapParams {
   map_name: string;
@@ -72,7 +77,7 @@ export async function generateStrategy({ map, style }: GenerateStrategyParams) {
     }
   };
 
-  const strategy = strategies[style]?.[mapFormatted] || strategies.aggressive[mapFormatted];
+  const strategy = strategies[style as keyof typeof strategies]?.[mapFormatted as keyof typeof strategies.aggressive] || strategies.aggressive[mapFormatted as keyof typeof strategies.aggressive];
 
   return {
     map: mapFormatted,
@@ -88,11 +93,11 @@ export async function getAgentStats({ map }: GetAgentStatsParams) {
     throw new Error(`Map "${map}" not found. Available maps: ${MAPS.join(', ')}`);
   }
 
-  const stats = AGENT_WINRATES[mapFormatted];
+  const stats = AGENT_WINRATES[mapFormatted as keyof typeof AGENT_WINRATES];
   const agentStats = Object.entries(stats).map(([agent, winrate]) => ({
     agent,
-    winrate
-  })).sort((a, b) => b.winrate - a.winrate);
+    winrate: winrate as number
+  })).sort((a, b) => (b.winrate as number) - (a.winrate as number));
 
   return {
     map: mapFormatted,
@@ -106,8 +111,8 @@ export async function getTeamBalance({ team }: GetTeamBalanceParams) {
   
   for (const agentName of team) {
     const agent = agentName.charAt(0).toUpperCase() + agentName.slice(1).toLowerCase();
-    if (AGENTS_DATA[agent]) {
-      roles[AGENTS_DATA[agent].role]++;
+    if (AGENTS_DATA[agent as keyof typeof AGENTS_DATA]) {
+      roles[AGENTS_DATA[agent as keyof typeof AGENTS_DATA].role as keyof typeof roles]++;
       validAgents.push(agent);
     }
   }
@@ -132,7 +137,7 @@ export async function getTeamBalance({ team }: GetTeamBalanceParams) {
 export async function getLoadout({ agent, round_type }: GetLoadoutParams) {
   const agentFormatted = agent.charAt(0).toUpperCase() + agent.slice(1).toLowerCase();
   
-  if (!AGENTS_DATA[agentFormatted]) {
+  if (!AGENTS_DATA[agentFormatted as keyof typeof AGENTS_DATA]) {
     throw new Error(`Agent "${agent}" not found.`);
   }
 
@@ -151,7 +156,7 @@ export async function getLoadout({ agent, round_type }: GetLoadoutParams) {
     }
   };
 
-  const loadout = loadouts[round_type] || loadouts.semi_buy;
+  const loadout = loadouts[round_type as keyof typeof loadouts] || loadouts.semi_buy;
 
   return {
     agent: agentFormatted,
@@ -164,7 +169,7 @@ export async function getLoadout({ agent, round_type }: GetLoadoutParams) {
 export const FUNCTIONS = [
   {
     name: "get_agents_for_map",
-    description: "Get recommended agents for a specific map",
+    description: "Provides a balanced and recommended team composition for a specific Valorant map. Use this when a user wants to know the best agents for a map.",
     parameters: {
       type: "object",
       properties: {
@@ -178,7 +183,7 @@ export const FUNCTIONS = [
   },
   {
     name: "generate_strategy",
-    description: "Generate a strategy for a specific map and play style",
+    description: "Generates a tactical strategy for a given map and play style (e.g., aggressive, defensive). Use this to get step-by-step plans for attacking or defending a site.",
     parameters: {
       type: "object",
       properties: {
@@ -245,48 +250,45 @@ export const FUNCTIONS = [
   }
 ];
 
-export async function processUserMessage(message: string) {
+export async function getEmbedding(text: string): Promise<number[]> {
   try {
-    const response = await openai.chat.completions.create({
-      model: "meta-llama/llama-3.2-3b-instruct:free",
-      messages: [{ role: "user", content: message }],
-      functions: FUNCTIONS,
-      function_call: "auto",
-    });
-
-    const responseMessage = response.choices[0].message;
+    const model = getGenAI().getGenerativeModel({ model: "embedding-001" });
+    const result = await model.embedContent(text);
+    const embedding = result.embedding;
     
-    if (responseMessage.function_call) {
-      const functionName = responseMessage.function_call.name;
-      const functionArgs = JSON.parse(responseMessage.function_call.arguments);
-      
-      let result;
-      switch (functionName) {
-        case "get_agents_for_map":
-          result = await getAgentsForMap(functionArgs);
-          break;
-        case "generate_strategy":
-          result = await generateStrategy(functionArgs);
-          break;
-        case "get_agent_stats":
-          result = await getAgentStats(functionArgs);
-          break;
-        case "get_team_balance":
-          result = await getTeamBalance(functionArgs);
-          break;
-        case "get_loadout":
-          result = await getLoadout(functionArgs);
-          break;
-        default:
-          throw new Error(`Unknown function: ${functionName}`);
-      }
-      
-      return result;
+    if (!embedding || !embedding.values) {
+      throw new Error('No embedding values returned from Gemini API');
     }
     
-    return { reply: responseMessage.content };
+    return embedding.values;
   } catch (error) {
-    console.error('OpenAI API error:', error);
-    throw new Error('Failed to process message');
+    console.error('[AI Service] Error creating embedding with Gemini:', error);
+    throw new Error(`Failed to create text embedding: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+export async function processUserMessage(message: string) {
+  console.log(`[AI Service] Processing message: "${message}"`);
+  try {
+    const model = getGenAI().getGenerativeModel({ model: "gemini-pro" });
+    
+    const prompt = `You are a helpful Valorant assistant. Your goal is to provide accurate and strategic advice to players. 
+    
+User question: ${message}
+
+Please provide a concise and strategic answer.`;
+
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+    
+    console.log('[AI Service] Received response from Gemini');
+    return { reply: text };
+  } catch (error) {
+    console.error('[AI Service] Error processing message:', error);
+    if (error instanceof Error) {
+      throw new Error(`AI Provider Error: ${error.message}`);
+    }
+    throw new Error('Failed to process message due to an unknown error');
   }
 }

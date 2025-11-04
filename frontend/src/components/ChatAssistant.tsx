@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, X, Minimize2, Loader2, AlertCircle } from 'lucide-react';
-import { Box, IconButton, TextField, Typography, Paper, Fade, Tooltip } from '@mui/material';
+import { ArrowDownRight, MessageCircle, Send, X, Minimize2, Loader2, AlertCircle } from 'lucide-react';
+import { Box, IconButton, TextField, Typography, Paper, Fade } from '@mui/material';
 import { aiService, Message } from '../services/aiService';
 
 interface ChatMessage extends Message {
@@ -93,30 +93,37 @@ export default function ChatAssistant() {
 
   if (!isOpen) {
     return (
-      <Tooltip title="AI Асистент" placement="left">
-        <IconButton
-          onClick={() => setIsOpen(true)}
-          sx={{
-            position: 'fixed',
-            bottom: 24,
-            right: 24,
-            width: 60,
-            height: 60,
-            bgcolor: 'primary.main',
-            color: 'white',
-            boxShadow: '0 4px 20px rgba(255, 70, 85, 0.4)',
-            '&:hover': {
-              bgcolor: 'primary.dark',
-              boxShadow: '0 6px 30px rgba(255, 70, 85, 0.6)',
-              transform: 'scale(1.05)',
+      <Box
+        onClick={() => setIsOpen(true)}
+        sx={{
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          zIndex: 1000,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          color: 'white',
+          '@keyframes bounce': {
+            '0%, 20%, 50%, 80%, 100%': {
+              transform: 'translateY(0)',
             },
-            transition: 'all 0.3s ease',
-            zIndex: 1000,
-          }}
-        >
-          <MessageCircle size={28} />
-        </IconButton>
-      </Tooltip>
+            '40%': {
+              transform: 'translateY(-10px)',
+            },
+            '60%': {
+              transform: 'translateY(-5px)',
+            },
+          },
+          animation: 'bounce 2s infinite',
+        }}
+      >
+        <Typography variant="button" sx={{ fontWeight: 700 }}>
+          AI Assistant
+        </Typography>
+        <ArrowDownRight size={24} />
+      </Box>
     );
   }
 

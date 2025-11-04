@@ -228,7 +228,7 @@ export default function ProfilePage() {
             <Typography variant="h5" sx={{ fontWeight: 700, color: '#ffffff', mb: 2 }}>
               Recent Matches
             </Typography>
-            {(recentMatches.length ? recentMatches : fallbackMatches).map((match, index) => (
+            {(recentMatches.length ? recentMatches : fallbackMatches).map((match: any, index: number) => (
               <Card
                 key={index}
                 sx={{

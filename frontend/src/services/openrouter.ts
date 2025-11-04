@@ -9,9 +9,9 @@ export class OpenRouterService {
   }
 
   async sendMessage(
-    messages: { role: string; content: string }[],
-    model: string = DEFAULT_MODEL,
-    options?: {
+    _messages: { role: string; content: string }[],
+    _model: string = DEFAULT_MODEL,
+    _options?: {
       temperature?: number;
       max_tokens?: number;
       top_p?: number;
@@ -21,10 +21,10 @@ export class OpenRouterService {
   }
 
   async sendMessageStream(
-    messages: { role: string; content: string }[],
-    model: string = DEFAULT_MODEL,
-    onChunk: (chunk: string) => void,
-    options?: {
+    _messages: { role: string; content: string }[],
+    _model: string = DEFAULT_MODEL,
+    _onChunk: (chunk: string) => void,
+    _options?: {
       temperature?: number;
       max_tokens?: number;
       top_p?: number;

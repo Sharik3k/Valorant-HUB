@@ -70,7 +70,7 @@ app.post('/api/chat', (req, res) => {
   };
   
   const lowerMessage = message.toLowerCase();
-  const response = mockResponses[lowerMessage] || mockResponses['default'];
+  const response = mockResponses[lowerMessage as keyof typeof mockResponses] || mockResponses['default'];
   
   console.log('✅ Mock response for:', message);
   res.json(response);
