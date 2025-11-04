@@ -26,8 +26,8 @@ module.exports = async (req, res) => {
   try {
     // Отримати API ключ з Environment Variables (безпечно, тільки на сервері)
     const apiKey = process.env.OPENROUTER_API_KEY;
-    // Використовуємо найкращу безкоштовну модель - Google Gemini 2.0 Flash
-    const model = process.env.AI_MODEL || 'google/gemini-2.0-flash-exp:free';
+    // Використовуємо стабільну безкоштовну модель - Meta LLaMA 3.2 3B
+    const model = process.env.AI_MODEL || 'meta-llama/llama-3.2-3b-instruct:free';
 
     if (!apiKey) {
       return res.status(500).json({ 
