@@ -25,6 +25,9 @@
   "engines": {
     "node": "20.x"
   },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1"
+  },
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
