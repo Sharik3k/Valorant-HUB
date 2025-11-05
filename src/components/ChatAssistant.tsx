@@ -77,8 +77,18 @@ export default function ChatAssistant() {
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Помилка при отриманні відповіді');
+      const errorMessage = err instanceof Error ? err.message : 'Помилка при отриманні відповіді';
+      setError(errorMessage);
       console.error('Chat error:', err);
+      
+      // Додати повідомлення про помилку в чат
+      const errorChatMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `❌ ${errorMessage}`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorChatMessage]);
     } finally {
       setIsLoading(false);
     }

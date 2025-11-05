@@ -80,8 +80,29 @@ module.exports = async (req, res) => {
 
   } catch (error) {
     console.error('API Error:', error);
-    return res.status(500).json({
-      error: error instanceof Error ? error.message : 'Unknown error',
+    
+    // Обробка специфічних помилок
+    let statusCode = 500;
+    let errorMessage = 'Unknown error';
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      
+      // Перевірка на rate limit (429)
+      if (errorMessage.includes('429') || errorMessage.toLowerCase().includes('rate limit')) {
+        statusCode = 429;
+        errorMessage = 'Перевищено ліміт запитів. Спробуйте через 1-2 хвилини. Безкоштовні моделі мають обмеження на кількість запитів.';
+      }
+      // Перевірка на помилки провайдера
+      else if (errorMessage.includes('Provider returned error')) {
+        statusCode = 503;
+        errorMessage = 'AI модель тимчасово недоступна. Спробуйте іншу модель або зачекайте кілька хвилин.';
+      }
+    }
+    
+    return res.status(statusCode).json({
+      error: errorMessage,
+      retryAfter: statusCode === 429 ? 60 : undefined, // Рекомендуємо зачекати 60 секунд
     });
   }
 };
