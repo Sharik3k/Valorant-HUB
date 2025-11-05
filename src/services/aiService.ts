@@ -100,7 +100,7 @@ class AIService {
   }
 
   getModel(): string {
-    return 'Serverless API';
+    return 'Google Gemini 2.0 Flash';
   }
 }
 
