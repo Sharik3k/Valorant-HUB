@@ -41,37 +41,13 @@ const getPlayerStats = async ({ riotId, region = 'eu' }) => {
   }
 };
 
-// Словник доступних інструментів
 /**
- * Шукає агентів Valorant за допомогою векторного пошуку.
+ * Виконує гібридний пошук (агенти + гравці) Valorant.
  * @param {object} args - Аргументи функції.
  * @param {string} args.query - Пошуковий запит.
  * @returns {Promise<string>} JSON-рядок з результатами пошуку.
  */
-const searchAgents = async ({ query }) => {
-  try {
-    const response = await fetch('http://localhost:3001/api/search/agents', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, topK: 3 }),
-    });
-    if (!response.ok) {
-      return JSON.stringify({ error: `Помилка пошуку агентів. Статус: ${response.status}` });
-    }
-    const results = await response.json();
-    return JSON.stringify(results);
-  } catch (error) {
-    return JSON.stringify({ error: 'Не вдалося підключитися до сервісу пошуку агентів.' });
-  }
-};
-
-/**
- * Виконує гібридний пошук гравців Valorant.
- * @param {object} args - Аргументи функції.
- * @param {string} args.query - Пошуковий запит.
- * @returns {Promise<string>} JSON-рядок з результатами пошуку.
- */
-const hybridSearchPlayers = async ({ query }) => {
+const hybridSearch = async ({ query }) => {
   try {
     const response = await fetch('http://localhost:3001/api/search/hybrid', {
       method: 'POST',
@@ -79,20 +55,19 @@ const hybridSearchPlayers = async ({ query }) => {
       body: JSON.stringify({ query, topK: 5 }),
     });
     if (!response.ok) {
-      return JSON.stringify({ error: `Помилка гібридного пошуку гравців. Статус: ${response.status}` });
+      return JSON.stringify({ error: `Помилка гібридного пошуку. Статус: ${response.status}` });
     }
     const results = await response.json();
     return JSON.stringify(results);
   } catch (error) {
-    return JSON.stringify({ error: 'Не вдалося підключитися до сервісу пошуку гравців.' });
+    return JSON.stringify({ error: 'Не вдалося підключитися до сервісу пошуку. Можливо сервер не запущений.' });
   }
 };
 
 // Словник доступних інструментів
 const availableTools = {
   getPlayerStats,
-  searchAgents,
-  hybridSearchPlayers,
+  hybridSearch,
 };
 
 // Специфікація інструментів для моделі Gemini
@@ -116,28 +91,14 @@ const toolDefinitions = [
     },
   },
   {
-    name: 'searchAgents',
-    description: 'Знайти агентів Valorant, які відповідають певному опису, стилю гри або ролі (наприклад, "агресивний дуелянт для входу на точку").',
+    name: 'hybridSearch',
+    description: 'Знайти агентів Valorant або професійних гравців за описом. Працює для пошуку агентів (наприклад, "агресивний дуелянт"), гравців (наприклад, "гравці з Fnatic") або обох.',
     parameters: {
       type: 'object',
       properties: {
         query: {
           type: 'string',
-          description: 'Природномовний опис того, якого агента потрібно знайти.',
-        },
-      },
-      required: ['query'],
-    },
-  },
-  {
-    name: 'hybridSearchPlayers',
-    description: 'Знайти професійних гравців Valorant за описом їх стилю гри, команди, улюблених агентів або регіону (наприклад, "знайди гравців з Fnatic, які грають на Viper").',
-    parameters: {
-      type: 'object',
-      properties: {
-        query: {
-          type: 'string',
-          description: 'Природномовний опис гравців, яких потрібно знайти.',
+          description: 'Природномовний опис того, що потрібно знайти (агенти, гравці, команди).',
         },
       },
       required: ['query'],
