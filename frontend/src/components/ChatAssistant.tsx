@@ -15,7 +15,26 @@ export default function ChatAssistant() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldownUntil) {
+      const interval = setInterval(() => {
+        const remaining = Math.ceil((cooldownUntil - Date.now()) / 1000);
+        if (remaining <= 0) {
+          setCooldownUntil(null);
+          setCooldownSeconds(0);
+          setError(null);
+        } else {
+          setCooldownSeconds(remaining);
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [cooldownUntil]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -39,6 +58,12 @@ export default function ChatAssistant() {
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
+
+    // Перевірка cooldown
+    if (cooldownUntil && Date.now() < cooldownUntil) {
+      setError(`⏳ Зачекайте ще ${cooldownSeconds} секунд перед наступним запитом`);
+      return;
+    }
 
     if (!aiService.isConfigured()) {
       setError('OpenRouter API ключ не налаштовано. Перевірте .env файл.');
@@ -76,8 +101,20 @@ export default function ChatAssistant() {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Додаємо мінімальний cooldown між запитами (5 секунд)
+      setCooldownUntil(Date.now() + 5000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Помилка при отриманні відповіді');
+      const errorMessage = err instanceof Error ? err.message : 'Помилка при отриманні відповіді';
+      
+      // Перевірка на rate limit
+      if (errorMessage.includes('429') || errorMessage.toLowerCase().includes('rate limit') || errorMessage.includes('Перевищено ліміт')) {
+        // Встановлюємо cooldown на 60 секунд
+        setCooldownUntil(Date.now() + 60000);
+        setError('⏳ Перевищено ліміт запитів. Зачекайте 60 секунд. Gemini API має обмеження на безкоштовному tier.');
+      } else {
+        setError(errorMessage);
+      }
       console.error('Chat error:', err);
     } finally {
       setIsLoading(false);
@@ -279,7 +316,7 @@ export default function ChatAssistant() {
                 <IconButton
                   color="primary"
                   onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || isLoading}
+                  disabled={!inputValue.trim() || isLoading || (cooldownUntil !== null && Date.now() < cooldownUntil)}
                   sx={{
                     bgcolor: 'primary.main',
                     color: 'white',
@@ -291,16 +328,28 @@ export default function ChatAssistant() {
                     },
                   }}
                 >
-                  <Send size={20} />
+                  {cooldownSeconds > 0 ? (
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                      {cooldownSeconds}s
+                    </Typography>
+                  ) : (
+                    <Send size={20} />
+                  )}
                 </IconButton>
               </Box>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ display: 'block', mt: 1, textAlign: 'center' }}
-              >
-                Powered by {aiService.getModel().split('/')[1]}
-              </Typography>
+              <Box sx={{ mt: 1, textAlign: 'center' }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                  Powered by Gemini 2.0 Flash
+                </Typography>
+                {cooldownSeconds > 0 && (
+                  <Typography variant="caption" color="warning.main" sx={{ display: 'block', fontWeight: 600 }}>
+                    ⏳ Cooldown: {cooldownSeconds}s
+                  </Typography>
+                )}
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.65rem' }}>
+                  Ліміт: 2 запити/хв (безкоштовний tier)
+                </Typography>
+              </Box>
             </Box>
           </>
         )}

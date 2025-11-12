@@ -4,6 +4,31 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { availableTools, toolDefinitions } = require('./tools');
 
+// Простий in-memory кеш для rate limiting
+const requestCache = new Map();
+const RATE_LIMIT_WINDOW = 60000; // 60 секунд
+const MAX_REQUESTS_PER_WINDOW = 2; // Максимум 2 запити за хвилину
+
+function checkRateLimit(identifier) {
+  const now = Date.now();
+  const userRequests = requestCache.get(identifier) || [];
+  
+  // Видаляємо старі запити
+  const recentRequests = userRequests.filter(time => now - time < RATE_LIMIT_WINDOW);
+  
+  if (recentRequests.length >= MAX_REQUESTS_PER_WINDOW) {
+    const oldestRequest = Math.min(...recentRequests);
+    const waitTime = Math.ceil((RATE_LIMIT_WINDOW - (now - oldestRequest)) / 1000);
+    return { allowed: false, waitTime };
+  }
+  
+  // Додаємо новий запит
+  recentRequests.push(now);
+  requestCache.set(identifier, recentRequests);
+  
+  return { allowed: true };
+}
+
 module.exports = async (req, res) => {
   // CORS headers для локального розвитку
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -25,6 +50,17 @@ module.exports = async (req, res) => {
   }
 
   try {
+    // Rate limiting перевірка
+    const clientIp = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown';
+    const rateLimitCheck = checkRateLimit(clientIp);
+    
+    if (!rateLimitCheck.allowed) {
+      return res.status(429).json({
+        error: `Перевищено ліміт запитів. Спробуйте через ${rateLimitCheck.waitTime} секунд. Безкоштовні моделі мають обмеження.`,
+        retryAfter: rateLimitCheck.waitTime,
+      });
+    }
+    
     // Отримати API ключ з Environment Variables (безпечно, тільки на сервері)
     const apiKey = process.env.GEMINI_API_KEY;
     // Використовуємо Gemini 2.0 Flash - швидка і безкоштовна модель
