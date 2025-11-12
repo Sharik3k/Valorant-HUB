@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, X, Minimize2, Loader2, AlertCircle } from 'lucide-react';
+import { MessageCircle, Send, X, Minimize2, Loader2, AlertCircle, Trash2 } from 'lucide-react';
 import { Box, IconButton, TextField, Typography, Paper, Fade, Tooltip } from '@mui/material';
 import { aiService, Message } from '../services/aiService';
 
@@ -58,9 +58,10 @@ export default function ChatAssistant() {
     setError(null);
 
     try {
-      // Відправляємо всі повідомлення окрім системного привітання
+      // Відправляємо тільки останні 5 повідомлень для економії токенів
       const conversationMessages = messages
         .filter(msg => msg.id !== '1')
+        .slice(-5) // Тільки останні 5 повідомлень
         .map(({ role, content }) => ({ role, content }));
       
       const response = await aiService.sendMessage([
@@ -99,6 +100,16 @@ export default function ChatAssistant() {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleClearHistory = () => {
+    setMessages([{
+      id: '1',
+      role: 'assistant',
+      content: '👋 Привіт! Я AI асистент VALORANT HUB. Можу допомогти з питаннями про агентів, мапи, зброю та стратегії. Як можу допомогти?',
+      timestamp: new Date(),
+    }]);
+    setError(null);
   };
 
   if (!isOpen) {
@@ -169,6 +180,16 @@ export default function ChatAssistant() {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Tooltip title="Очистити історію" placement="bottom">
+              <IconButton
+                size="small"
+                onClick={handleClearHistory}
+                sx={{ color: 'white' }}
+                disabled={messages.length <= 1}
+              >
+                <Trash2 size={18} />
+              </IconButton>
+            </Tooltip>
             <IconButton
               size="small"
               onClick={() => setIsMinimized(!isMinimized)}

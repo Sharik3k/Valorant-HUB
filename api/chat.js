@@ -2,6 +2,7 @@
 // API ключ зберігається на сервері і не доступний в браузері
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { availableTools, toolDefinitions } = require('./tools');
 
 module.exports = async (req, res) => {
   // CORS headers для локального розвитку
@@ -42,14 +43,15 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Invalid messages format' });
     }
 
-    // Системний промпт
-    const systemPrompt = 'Ти — AI асистент для VALORANT HUB. Допомагаєш гравцям з питаннями про гру VALORANT: агенти, мапи, зброя, стратегії, VCT змагання. Відповідай коротко та по суті українською мовою та англійською мовою, залежно від мови якою робить запит користувач.';
+    // Системний промпт (оптимізовано для економії токенів)
+    const systemPrompt = 'AI асистент VALORANT HUB. Відповідай коротко українською або англійською.';
 
     // Ініціалізувати Gemini клієнт
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ 
       model: modelName,
       systemInstruction: systemPrompt,
+      tools: toolDefinitions,
     });
 
     // Конвертувати повідомлення в формат Gemini
@@ -65,13 +67,47 @@ module.exports = async (req, res) => {
       history: history,
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 2000,
+        maxOutputTokens: 500, // Оптимізовано для економії токенів
       },
     });
 
-    // Відправити повідомлення
-    const result = await chat.sendMessage(lastMessage.content);
-    const response = result.response;
+    // Відправити повідомлення і обробити можливі виклики функцій
+    let result = await chat.sendMessage(lastMessage.content);
+    let response = result.response;
+
+    while (response.functionCalls) {
+      const calls = response.functionCalls;
+      
+      // Паралельно виконуємо всі виклики інструментів
+      const functionResponses = await Promise.all(
+        calls.map(async (call) => {
+          const { name, args } = call;
+          const fn = availableTools[name];
+          if (!fn) {
+            // Якщо інструмент не знайдено, повертаємо помилку
+            return {
+              name,
+              response: {
+                content: JSON.stringify({ error: `Tool ${name} not found.` }),
+              },
+            };
+          }
+          // Викликаємо асинхронну функцію інструмента з правильними аргументами
+          const toolResult = await fn(args);
+          return {
+            name,
+            response: {
+              content: toolResult,
+            },
+          };
+        })
+      );
+
+      // Надіслати відповіді від інструментів назад до моделі
+      result = await chat.sendMessage(JSON.stringify(functionResponses));
+      response = result.response;
+    }
+
     const text = response.text();
 
     if (!text) {
