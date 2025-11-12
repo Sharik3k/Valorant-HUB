@@ -6,8 +6,8 @@ const { availableTools, toolDefinitions } = require('./tools');
 
 // Простий in-memory кеш для rate limiting
 const requestCache = new Map();
-const RATE_LIMIT_WINDOW = 60000; // 60 секунд
-const MAX_REQUESTS_PER_WINDOW = 2; // Максимум 2 запити за хвилину
+const RATE_LIMIT_WINDOW = 120000; // 120 секунд (2 хвилини)
+const MAX_REQUESTS_PER_WINDOW = 3; // Максимум 3 запити за 2 хвилини
 
 function checkRateLimit(identifier) {
   const now = Date.now();
@@ -22,11 +22,13 @@ function checkRateLimit(identifier) {
     return { allowed: false, waitTime };
   }
   
-  // Додаємо новий запит
-  recentRequests.push(now);
+  // Додаємо новий запит ПІСЛЯ успішного виконання
+  return { allowed: true, recentRequests };
+}
+
+function recordRequest(identifier, recentRequests) {
+  recentRequests.push(Date.now());
   requestCache.set(identifier, recentRequests);
-  
-  return { allowed: true };
 }
 
 module.exports = async (req, res) => {
@@ -50,13 +52,13 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Rate limiting перевірка
+    // Rate limiting перевірка (м'яка - дозволяємо спробувати)
     const clientIp = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown';
     const rateLimitCheck = checkRateLimit(clientIp);
     
     if (!rateLimitCheck.allowed) {
       return res.status(429).json({
-        error: `Перевищено ліміт запитів. Спробуйте через ${rateLimitCheck.waitTime} секунд. Безкоштовні моделі мають обмеження.`,
+        error: `⏳ Перевищено ліміт запитів на сервері. Спробуйте через ${rateLimitCheck.waitTime} секунд.`,
         retryAfter: rateLimitCheck.waitTime,
       });
     }
@@ -149,6 +151,9 @@ module.exports = async (req, res) => {
     if (!text) {
       throw new Error('Empty response from AI');
     }
+
+    // Записуємо запит ТІЛЬКИ після успішної відповіді
+    recordRequest(clientIp, rateLimitCheck.recentRequests);
 
     // Повернути відповідь клієнту
     return res.status(200).json({

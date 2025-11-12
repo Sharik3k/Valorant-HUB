@@ -102,16 +102,16 @@ export default function ChatAssistant() {
 
       setMessages(prev => [...prev, assistantMessage]);
       
-      // Додаємо мінімальний cooldown між запитами (5 секунд)
-      setCooldownUntil(Date.now() + 5000);
+      // Додаємо мінімальний cooldown між запитами (10 секунд для безпеки)
+      setCooldownUntil(Date.now() + 10000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Помилка при отриманні відповіді';
       
       // Перевірка на rate limit
       if (errorMessage.includes('429') || errorMessage.toLowerCase().includes('rate limit') || errorMessage.includes('Перевищено ліміт')) {
-        // Встановлюємо cooldown на 60 секунд
-        setCooldownUntil(Date.now() + 60000);
-        setError('⏳ Перевищено ліміт запитів. Зачекайте 60 секунд. Gemini API має обмеження на безкоштовному tier.');
+        // Встановлюємо cooldown на 90 секунд (1.5 хвилини)
+        setCooldownUntil(Date.now() + 90000);
+        setError('⏳ Перевищено ліміт запитів Gemini API. Зачекайте 90 секунд. Безкоштовний tier має жорсткі обмеження.');
       } else {
         setError(errorMessage);
       }
