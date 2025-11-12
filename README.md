@@ -1,148 +1,249 @@
-# 🎮 VALORANT HUB
+# 🎮 VALORANT HUB - AI Assistant Demo
 
-Your ultimate VALORANT companion application with interactive maps, agent guides, and AI-powered features.
+> Демонстраційний проект з використанням GenAI фреймворків для створення інтелектуального асистента
 
-## 🚀 Live Demo
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/Valorant-HUB)
 
-- **Production**: [valorant-ezikmwmjr-vladyslavsenkiv-gmailcoms-projects.vercel.app](https://valorant-hub-inky.vercel.app/)
+## 🚀 Особливості
 
-## ✨ Features
+- **🤖 AI Асистент** - Інтелектуальний чат-бот на базі Google Gemini 2.0 Flash
+- **🛠️ Function Calling** - Агент може викликати зовнішні інструменти
+- **🔒 Безпечна архітектура** - API ключі зберігаються на сервері
+- **⚡ Serverless** - Використовує Vercel Serverless Functions
+- **🎨 Сучасний UI** - React + TypeScript + Material-UI
 
-### 🗺️ Interactive Maps
-- Detailed callouts for all VALORANT maps
-- Click on any map to see detailed information
-- Professional tips and strategies
-- Recommended agents for each map
+## 📋 Вимоги завдання
 
-### 👥 Agent Guides
-- Comprehensive guides for all agents
-- Abilities breakdown and usage tips
-- Team composition recommendations
+✅ **1. Репозиторій на GitHub** - Проект розміщено на GitHub  
+✅ **2. Підключення до AI API** - Використовується Google Gemini API  
+✅ **3. Деплой на Vercel** - Проект задеплоєно на Vercel  
 
-### 🏆 VCT Esports
-- Follow professional tournaments
-- Team information and statistics
-- Match schedules and results
-
-### 📊 Player Profile
-- Track your stats and progress
-- Performance analytics
-- Achievement system
-
-### 🤖 AI Chat Assistant ✨ NEW
-- Get personalized gameplay advice powered by OpenRouter
-- Strategy recommendations using free LLaMA/Gemini models
-- Interactive chat interface with conversation history
-- Expert knowledge about agents, maps, and tactics
-
-## 🛠️ Tech Stack
-
-- **Frontend**: React 18 + TypeScript
-- **Build Tool**: Vite
-- **UI Library**: Material-UI (MUI)
-- **Icons**: Lucide React
-- **Routing**: React Router
-- **Styling**: Emotion + CSS-in-JS
-- **AI Integration**: OpenRouter API (Free Models)
-- **Deployment**: Vercel + GitHub Pages
-
-## 📁 Project Structure
+## 🏗️ Архітектура
 
 ```
-Valorant-HUB-Final/
-├── src/                    # Source code
-│   ├── pages/             # React pages
-│   ├── components/        # Reusable components
-│   ├── services/          # API services
-│   └── types/             # TypeScript types
-├── public/                # Static assets
-├── docs/                  # Documentation
-│   ├── deployment/        # Deployment guides
-│   ├── features/          # Feature documentation
-│   ├── setup/             # Setup instructions
-│   └── technical/         # Technical documentation
-├── scripts/               # Build and deployment scripts
-├── api/                   # Serverless API functions
-└── backend/               # Django backend (optional)
+┌─────────────────────────────────────────────────────────────┐
+│                        Frontend (React)                      │
+│  ┌──────────────────┐         ┌──────────────────┐         │
+│  │  ChatAssistant   │────────▶│   aiService.ts   │         │
+│  │   Component      │         │                  │         │
+│  └──────────────────┘         └──────────────────┘         │
+└────────────────────────────────────┬────────────────────────┘
+                                     │ HTTP POST /api/chat
+                                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Vercel Serverless Functions                     │
+│  ┌──────────────────┐         ┌──────────────────┐         │
+│  │   api/chat.js    │────────▶│   api/tools.js   │         │
+│  │  (Main Handler)  │         │   (Functions)    │         │
+│  └──────────────────┘         └──────────────────┘         │
+└────────────────────────────────────┬────────────────────────┘
+                                     │ API Key (Server-side)
+                                     ▼
+                          ┌──────────────────────┐
+                          │   Google Gemini API  │
+                          │   (2.0 Flash Model)  │
+                          └──────────────────────┘
 ```
 
-## 🚀 Quick Start
+## 🛠️ Інструменти агента
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
+### 1. `getPlayerStats`
+Отримує статистику гравця Valorant (ранг, ELO) через API henrikdev.xyz
 
-### Installation
+**Приклад:**
+```
+Користувач: "Яка статистика гравця TenZ#NA1?"
+Агент: Викликає getPlayerStats({ riotId: "TenZ#NA1", region: "na" })
+```
+
+### 2. `searchAgents`
+Векторний пошук агентів Valorant за описом
+
+**Приклад:**
+```
+Користувач: "Знайди агресивного дуелянта для входу на точку"
+Агент: Викликає searchAgents({ query: "агресивний дуелянт" })
+```
+
+### 3. `hybridSearchPlayers`
+Гібридний пошук професійних гравців
+
+**Приклад:**
+```
+Користувач: "Знайди гравців з Fnatic, які грають на Viper"
+Агент: Викликає hybridSearchPlayers({ query: "Fnatic Viper" })
+```
+
+## 🚀 Швидкий старт
+
+### 1. Клонування репозиторію
 ```bash
-# Clone the repository
 git clone https://github.com/YOUR_USERNAME/Valorant-HUB.git
-cd Valorant-HUB-Final
-
-# Install dependencies
-npm install
-
-# Setup environment variables
-cp .env.example .env
-# Edit .env and add your OpenRouter API key
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
+cd Valorant-HUB
 ```
 
-### 🤖 AI Assistant Setup
-See [AI_ASSISTANT_SETUP.md](AI_ASSISTANT_SETUP.md) for detailed instructions on:
-- Getting a free OpenRouter API key
-- Configuring environment variables
-- Deploying to Vercel with AI features
-- Using different free AI models
+### 2. Встановлення залежностей
 
-## 📚 Documentation
+**Frontend:**
+```bash
+cd frontend
+npm install
+```
 
-- [🚀 Deployment Guide](docs/deployment/README-VERCEL.md)
-- [⚙️ Setup Instructions](docs/setup/)
-- [🎯 Features Overview](docs/features/)
-- [🔧 Technical Documentation](docs/technical/)
+**Backend (для локального тестування):**
+```bash
+cd ..
+npm install
+```
 
-## 🎯 Roadmap
+### 3. Налаштування Environment Variables
 
-- [x] Interactive Maps with Modal Details
-- [x] Responsive Design
-- [x] Agent Information Pages
-- [x] AI Chat Integration with OpenRouter
-- [x] Free AI Models (LLaMA, Gemini, Phi-3)
-- [ ] Player Statistics Integration
-- [ ] VCT Tournament Live Data
-- [ ] Mobile App Version
-- [ ] Voice Chat with AI
+Створіть файл `.env` в корені проекту:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+AI_MODEL=gemini-2.0-flash-exp
+```
 
-## 🤝 Contributing
+**Як отримати Gemini API ключ:**
+1. Перейдіть на [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Створіть новий API ключ
+3. Скопіюйте його в `.env` файл
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### 4. Запуск локально
 
-## 📄 License
+**Frontend:**
+```bash
+cd frontend
+npm run dev
+```
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+**Backend (Vercel Dev):**
+```bash
+vercel dev
+```
 
-## 🙏 Acknowledgments
+Відкрийте http://localhost:5173
 
-- Riot Games for VALORANT
-- Material-UI team for the component library
-- Vercel for hosting platform
-- Community for feedback and suggestions
+## 📦 Деплой на Vercel
 
-## 🚀 One-Click Deploy
+### Автоматичний деплой:
+1. Натисніть кнопку "Deploy with Vercel" вгорі
+2. Підключіть GitHub репозиторій
+3. Додайте Environment Variables:
+   - `GEMINI_API_KEY` - ваш Gemini API ключ
+   - `AI_MODEL` - `gemini-2.0-flash-exp`
+4. Натисніть "Deploy"
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Sharik3k/Valorant-HUB)
+### Ручний деплой:
+```bash
+# Встановіть Vercel CLI
+npm i -g vercel
+
+# Деплой
+vercel
+
+# Додайте environment variables
+vercel env add GEMINI_API_KEY
+vercel env add AI_MODEL
+```
+
+## 🎯 Використання
+
+1. Відкрийте сайт
+2. Натисніть на кнопку "AI Assistant" в правому нижньому куті
+3. Почніть спілкування з агентом
+
+**Приклади запитів:**
+- "Яка статистика гравця Sharik#3k?"
+- "Знайди агресивного дуелянта"
+- "Хто з професійних гравців грає на Jett?"
+- "Розкажи про карту Ascent"
+
+## 📁 Структура проекту
+
+```
+Valorant-HUB/
+├── frontend/                 # React frontend
+│   ├── src/
+│   │   ├── components/      # React компоненти
+│   │   │   └── ChatAssistant.tsx
+│   │   ├── services/        # API сервіси
+│   │   │   └── aiService.ts
+│   │   ├── pages/           # Сторінки
+│   │   └── App.tsx
+│   └── package.json
+├── api/                     # Vercel Serverless Functions
+│   ├── chat.js             # Головний handler
+│   └── tools.js            # Інструменти агента
+├── .env                    # Environment variables (не в git)
+├── vercel.json             # Vercel конфігурація
+└── README.md
+```
+
+## 🔧 Технології
+
+### Frontend:
+- **React 18** - UI бібліотека
+- **TypeScript** - Типізація
+- **Material-UI** - Компоненти
+- **Vite** - Build tool
+- **Lucide React** - Іконки
+
+### Backend:
+- **Vercel Serverless Functions** - Безсерверна архітектура
+- **Google Gemini 2.0 Flash** - AI модель
+- **@google/generative-ai** - SDK для Gemini
+
+### APIs:
+- **Google Gemini API** - Головна AI модель
+- **henrikdev.xyz API** - Valorant статистика
+
+## 🔒 Безпека
+
+- ✅ API ключі зберігаються на сервері (Vercel Environment Variables)
+- ✅ Клієнт не має доступу до ключів
+- ✅ CORS налаштовано правильно
+- ✅ Валідація вхідних даних
+- ✅ Обробка помилок
+
+## 📊 Оптимізація
+
+- **Економія токенів**: Короткий системний промпт
+- **Швидкість**: Gemini 2.0 Flash - одна з найшвидших моделей
+- **Безкоштовно**: Використовується безкоштовний tier Gemini API
+- **Паралельність**: Інструменти виконуються паралельно
+
+## 🐛 Troubleshooting
+
+### Помилка "API key не налаштовано"
+- Перевірте, чи додали ви `GEMINI_API_KEY` в Vercel Environment Variables
+- Перезапустіть деплой після додавання змінних
+
+### Помилка "Rate limit exceeded"
+- Gemini має ліміти на безкоштовному tier
+- Зачекайте 1-2 хвилини і спробуйте знову
+
+### Інструменти не працюють
+- Перевірте, чи запущений локальний сервер пошуку (якщо тестуєте локально)
+- В продакшені інструменти можуть бути недоступні без додаткового backend
+
+## 📝 Ліцензія
+
+MIT License - використовуйте вільно для навчання та комерційних проектів
+
+## 👥 Автори
+
+- **Sharik3k** - Розробка та імплементація
+
+## 🙏 Подяки
+
+- Google за Gemini API
+- Riot Games за Valorant
+- henrikdev.xyz за Valorant API
+- Vercel за безкоштовний хостинг
 
 ---
 
 **Made with ❤️ for VALORANT players**
 
-*Dominate every round with VALORANT HUB!*
+*Dominate every round with AI-powered assistance!* 🎮

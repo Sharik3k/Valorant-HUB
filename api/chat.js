@@ -51,7 +51,7 @@ module.exports = async (req, res) => {
     const model = genAI.getGenerativeModel({ 
       model: modelName,
       systemInstruction: systemPrompt,
-      tools: toolDefinitions,
+      tools: [{ functionDeclarations: toolDefinitions }],
     });
 
     // Конвертувати повідомлення в формат Gemini
