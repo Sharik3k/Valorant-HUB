@@ -2,35 +2,7 @@
 // API ключ зберігається на сервері і не доступний в браузері
 
 const OpenAI = require('openai');
-// Tools відключені для стабільності - можна увімкнути пізніше
-// const { availableTools, toolDefinitions } = require('./tools');
-
-// Простий in-memory кеш для rate limiting
-const requestCache = new Map();
-const RATE_LIMIT_WINDOW = 120000; // 120 секунд (2 хвилини)
-const MAX_REQUESTS_PER_WINDOW = 3; // Максимум 3 запити за 2 хвилини
-
-function checkRateLimit(identifier) {
-  const now = Date.now();
-  const userRequests = requestCache.get(identifier) || [];
-  
-  // Видаляємо старі запити
-  const recentRequests = userRequests.filter(time => now - time < RATE_LIMIT_WINDOW);
-  
-  if (recentRequests.length >= MAX_REQUESTS_PER_WINDOW) {
-    const oldestRequest = Math.min(...recentRequests);
-    const waitTime = Math.ceil((RATE_LIMIT_WINDOW - (now - oldestRequest)) / 1000);
-    return { allowed: false, waitTime };
-  }
-  
-  // Додаємо новий запит ПІСЛЯ успішного виконання
-  return { allowed: true, recentRequests };
-}
-
-function recordRequest(identifier, recentRequests) {
-  recentRequests.push(Date.now());
-  requestCache.set(identifier, recentRequests);
-}
+const { availableTools, toolDefinitions } = require('./tools');
 
 module.exports = async (req, res) => {
   // CORS headers для локального розвитку
@@ -53,17 +25,6 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Rate limiting перевірка (м'яка - дозволяємо спробувати)
-    const clientIp = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown';
-    const rateLimitCheck = checkRateLimit(clientIp);
-    
-    if (!rateLimitCheck.allowed) {
-      return res.status(429).json({
-        error: `⏳ Перевищено ліміт запитів на сервері. Спробуйте через ${rateLimitCheck.waitTime} секунд.`,
-        retryAfter: rateLimitCheck.waitTime,
-      });
-    }
-    
     // Отримати API ключ з Environment Variables (безпечно, тільки на сервері)
     const apiKey = process.env.OPENAI_API_KEY;
     // Використовуємо GPT-4o-mini - швидка і економна модель
@@ -83,7 +44,7 @@ module.exports = async (req, res) => {
     }
 
     // Системний промпт (оптимізовано для економії токенів)
-    const systemPrompt = 'AI асистент VALORANT HUB. Відповідай коротко українською або англійською. Допомагай з питаннями про агентів, мапи, зброю та стратегії.';
+    const systemPrompt = 'AI асистент VALORANT HUB. Відповідай коротко українською або англійською. Допомагай з питаннями про агентів, мапи, зброю та стратегії. Ти маєш доступ до інструментів для отримання статистики гравців та пошуку. Використовуй їх коли потрібно.';
 
     // Ініціалізувати OpenAI клієнт
     const openai = new OpenAI({
@@ -99,26 +60,92 @@ module.exports = async (req, res) => {
       })),
     ];
 
-    // Відправити повідомлення до OpenAI
-    const completion = await openai.chat.completions.create({
+    // Конвертувати toolDefinitions в формат OpenAI tools
+    const tools = toolDefinitions.map(tool => ({
+      type: 'function',
+      function: {
+        name: tool.name,
+        description: tool.description,
+        parameters: tool.parameters,
+      },
+    }));
+
+    // Відправити повідомлення до OpenAI з tools
+    let completion = await openai.chat.completions.create({
       model: modelName,
       messages: formattedMessages,
+      tools: tools.length > 0 ? tools : undefined,
+      tool_choice: 'auto', // Модель сама вирішує чи викликати функцію
       temperature: 0.7,
-      max_tokens: 500, // Оптимізовано для економії токенів
+      max_tokens: 500,
     });
 
-    const text = completion.choices[0]?.message?.content;
+    let assistantMessage = completion.choices[0]?.message;
+    let finalResponse = assistantMessage.content || '';
 
-    if (!text) {
+    // Обробка function calling
+    if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
+      console.log(`[Chat API] Викликано ${assistantMessage.tool_calls.length} інструментів`);
+
+      // Додаємо повідомлення асистента з tool_calls до історії
+      formattedMessages.push(assistantMessage);
+
+      // Виконуємо всі виклики інструментів
+      const toolResults = [];
+      
+      for (const toolCall of assistantMessage.tool_calls) {
+        const functionName = toolCall.function.name;
+        const functionArgs = JSON.parse(toolCall.function.arguments);
+        
+        console.log(`[Chat API] Виклик функції: ${functionName}`, functionArgs);
+
+        try {
+          // Викликаємо функцію з availableTools
+          if (!availableTools[functionName]) {
+            throw new Error(`Функція ${functionName} не знайдена`);
+          }
+
+          const functionResult = await availableTools[functionName](functionArgs);
+          
+          // Додаємо результат до масиву
+          toolResults.push({
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            content: functionResult, // Вже JSON string з tools.js
+          });
+        } catch (error) {
+          console.error(`[Chat API] Помилка виконання ${functionName}:`, error);
+          toolResults.push({
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            content: JSON.stringify({ 
+              error: `Помилка виконання функції: ${error.message}` 
+            }),
+          });
+        }
+      }
+
+      // Додаємо результати виконання функцій до історії
+      formattedMessages.push(...toolResults);
+
+      // Відправляємо результати назад до моделі для формування фінальної відповіді
+      completion = await openai.chat.completions.create({
+        model: modelName,
+        messages: formattedMessages,
+        temperature: 0.7,
+        max_tokens: 500,
+      });
+
+      finalResponse = completion.choices[0]?.message?.content || 'Не вдалося сформувати відповідь';
+    }
+
+    if (!finalResponse) {
       throw new Error('Empty response from AI');
     }
 
-    // Записуємо запит ТІЛЬКИ після успішної відповіді
-    recordRequest(clientIp, rateLimitCheck.recentRequests);
-
     // Повернути відповідь клієнту
     return res.status(200).json({
-      message: text,
+      message: finalResponse,
       usage: {
         prompt_tokens: completion.usage?.prompt_tokens || 0,
         completion_tokens: completion.usage?.completion_tokens || 0,
@@ -136,13 +163,8 @@ module.exports = async (req, res) => {
     if (error instanceof Error) {
       errorMessage = error.message;
       
-      // Перевірка на rate limit (429)
-      if (errorMessage.includes('429') || errorMessage.toLowerCase().includes('rate limit')) {
-        statusCode = 429;
-        errorMessage = 'Перевищено ліміт запитів. Спробуйте через 1-2 хвилини. Безкоштовні моделі мають обмеження на кількість запитів.';
-      }
       // Перевірка на помилки провайдера
-      else if (errorMessage.includes('Provider returned error')) {
+      if (errorMessage.includes('Provider returned error')) {
         statusCode = 503;
         errorMessage = 'AI модель тимчасово недоступна. Спробуйте іншу модель або зачекайте кілька хвилин.';
       }
@@ -150,7 +172,6 @@ module.exports = async (req, res) => {
     
     return res.status(statusCode).json({
       error: errorMessage,
-      retryAfter: statusCode === 429 ? 60 : undefined, // Рекомендуємо зачекати 60 секунд
     });
   }
 };
