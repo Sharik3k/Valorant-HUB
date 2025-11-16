@@ -8,7 +8,7 @@ dotenv.config();
 
 // Debug environment variables
 console.log('Environment variables loaded:');
-console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'SET' : 'NOT SET');
+console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'SET' : 'NOT SET');
 console.log('PORT:', process.env.PORT);
 
 const app = express();

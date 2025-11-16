@@ -111,7 +111,7 @@ export default function ChatAssistant() {
       if (errorMessage.includes('429') || errorMessage.toLowerCase().includes('rate limit') || errorMessage.includes('Перевищено ліміт')) {
         // Встановлюємо cooldown на 90 секунд (1.5 хвилини)
         setCooldownUntil(Date.now() + 90000);
-        setError('⏳ Перевищено ліміт запитів Gemini API. Зачекайте 90 секунд. Безкоштовний tier має жорсткі обмеження.');
+        setError('⏳ Перевищено ліміт запитів OpenAI API. Зачекайте 90 секунд.');
       } else {
         setError(errorMessage);
       }
@@ -339,7 +339,7 @@ export default function ChatAssistant() {
               </Box>
               <Box sx={{ mt: 1, textAlign: 'center' }}>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                  Powered by Gemini 2.0 Flash
+                  Powered by OpenAI
                 </Typography>
                 {cooldownSeconds > 0 && (
                   <Typography variant="caption" color="warning.main" sx={{ display: 'block', fontWeight: 600 }}>

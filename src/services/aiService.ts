@@ -100,7 +100,7 @@ class AIService {
   }
 
   getModel(): string {
-    return 'Google Gemini 2.0 Flash';
+    return 'OpenAI GPT-4o-mini';
   }
 }
 

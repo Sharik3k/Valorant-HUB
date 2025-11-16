@@ -70,7 +70,7 @@ const availableTools = {
   hybridSearch,
 };
 
-// Специфікація інструментів для моделі Gemini
+// Специфікація інструментів для моделі OpenAI
 const toolDefinitions = [
   {
     name: 'getPlayerStats',

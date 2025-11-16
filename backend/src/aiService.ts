@@ -1,18 +1,18 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 import { AGENTS_DATA, MAPS, AGENT_WINRATES } from './agentsData';
 
-// Initialize Gemini API (lazy loading)
-let genAI: GoogleGenerativeAI | null = null;
+// Initialize OpenAI API (lazy loading)
+let openaiClient: OpenAI | null = null;
 
-function getGenAI(): GoogleGenerativeAI {
-  if (!genAI) {
-    const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+function getOpenAI(): OpenAI {
+  if (!openaiClient) {
+    const apiKey = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
     if (!apiKey) {
-      throw new Error('GEMINI_API_KEY is not set');
+      throw new Error('OPENAI_API_KEY is not set');
     }
-    genAI = new GoogleGenerativeAI(apiKey);
+    openaiClient = new OpenAI({ apiKey });
   }
-  return genAI;
+  return openaiClient;
 }
 
 export interface GetAgentsForMapParams {
@@ -252,17 +252,21 @@ export const FUNCTIONS = [
 
 export async function getEmbedding(text: string): Promise<number[]> {
   try {
-    const model = getGenAI().getGenerativeModel({ model: "embedding-001" });
-    const result = await model.embedContent(text);
-    const embedding = result.embedding;
+    const openai = getOpenAI();
+    const response = await openai.embeddings.create({
+      model: 'text-embedding-3-small',
+      input: text,
+    });
     
-    if (!embedding || !embedding.values) {
-      throw new Error('No embedding values returned from Gemini API');
+    const embedding = response.data[0]?.embedding;
+    
+    if (!embedding) {
+      throw new Error('No embedding values returned from OpenAI API');
     }
     
-    return embedding.values;
+    return embedding;
   } catch (error) {
-    console.error('[AI Service] Error creating embedding with Gemini:', error);
+    console.error('[AI Service] Error creating embedding with OpenAI:', error);
     throw new Error(`Failed to create text embedding: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -270,19 +274,31 @@ export async function getEmbedding(text: string): Promise<number[]> {
 export async function processUserMessage(message: string) {
   console.log(`[AI Service] Processing message: "${message}"`);
   try {
-    const model = getGenAI().getGenerativeModel({ model: "gemini-pro" });
+    const openai = getOpenAI();
     
-    const prompt = `You are a helpful Valorant assistant. Your goal is to provide accurate and strategic advice to players. 
+    const completion = await openai.chat.completions.create({
+      model: process.env.AI_MODEL || 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a helpful Valorant assistant. Your goal is to provide accurate and strategic advice to players.',
+        },
+        {
+          role: 'user',
+          content: message,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 500,
+    });
     
-User question: ${message}
-
-Please provide a concise and strategic answer.`;
-
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
+    const text = completion.choices[0]?.message?.content;
     
-    console.log('[AI Service] Received response from Gemini');
+    if (!text) {
+      throw new Error('Empty response from OpenAI');
+    }
+    
+    console.log('[AI Service] Received response from OpenAI');
     return { reply: text };
   } catch (error) {
     console.error('[AI Service] Error processing message:', error);

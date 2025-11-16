@@ -1,7 +1,7 @@
-// Vercel Serverless Function для безпечної роботи з Gemini API
+// Vercel Serverless Function для безпечної роботи з OpenAI API
 // API ключ зберігається на сервері і не доступний в браузері
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 // Tools відключені для стабільності - можна увімкнути пізніше
 // const { availableTools, toolDefinitions } = require('./tools');
 
@@ -65,13 +65,13 @@ module.exports = async (req, res) => {
     }
     
     // Отримати API ключ з Environment Variables (безпечно, тільки на сервері)
-    const apiKey = process.env.GEMINI_API_KEY;
-    // Використовуємо Gemini 2.0 Flash - швидка і безкоштовна модель
-    const modelName = process.env.AI_MODEL || 'gemini-2.0-flash-exp';
+    const apiKey = process.env.OPENAI_API_KEY;
+    // Використовуємо GPT-4o-mini - швидка і економна модель
+    const modelName = process.env.AI_MODEL || 'gpt-4o-mini';
 
     if (!apiKey) {
       return res.status(500).json({ 
-        error: 'Gemini API key не налаштовано на сервері' 
+        error: 'OpenAI API key не налаштовано на сервері' 
       });
     }
 
@@ -85,36 +85,29 @@ module.exports = async (req, res) => {
     // Системний промпт (оптимізовано для економії токенів)
     const systemPrompt = 'AI асистент VALORANT HUB. Відповідай коротко українською або англійською. Допомагай з питаннями про агентів, мапи, зброю та стратегії.';
 
-    // Ініціалізувати Gemini клієнт
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ 
+    // Ініціалізувати OpenAI клієнт
+    const openai = new OpenAI({
+      apiKey: apiKey,
+    });
+
+    // Конвертувати повідомлення в формат OpenAI
+    const formattedMessages = [
+      { role: 'system', content: systemPrompt },
+      ...messages.map(msg => ({
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.content,
+      })),
+    ];
+
+    // Відправити повідомлення до OpenAI
+    const completion = await openai.chat.completions.create({
       model: modelName,
-      systemInstruction: systemPrompt,
-      // Tools відключені для стабільності
-      // tools: [{ functionDeclarations: toolDefinitions }],
+      messages: formattedMessages,
+      temperature: 0.7,
+      max_tokens: 500, // Оптимізовано для економії токенів
     });
 
-    // Конвертувати повідомлення в формат Gemini
-    const history = messages.slice(0, -1).map(msg => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }],
-    }));
-
-    const lastMessage = messages[messages.length - 1];
-
-    // Створити чат сесію
-    const chat = model.startChat({
-      history: history,
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 500, // Оптимізовано для економії токенів
-      },
-    });
-
-    // Відправити повідомлення (без function calling для стабільності)
-    const result = await chat.sendMessage(lastMessage.content);
-    const response = result.response;
-    const text = response.text();
+    const text = completion.choices[0]?.message?.content;
 
     if (!text) {
       throw new Error('Empty response from AI');
@@ -127,9 +120,9 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       message: text,
       usage: {
-        prompt_tokens: 0,
-        completion_tokens: 0,
-        total_tokens: 0,
+        prompt_tokens: completion.usage?.prompt_tokens || 0,
+        completion_tokens: completion.usage?.completion_tokens || 0,
+        total_tokens: completion.usage?.total_tokens || 0,
       },
     });
 
