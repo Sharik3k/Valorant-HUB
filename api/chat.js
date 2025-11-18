@@ -1,177 +1,129 @@
-// Vercel Serverless Function для безпечної роботи з OpenAI API
-// API ключ зберігається на сервері і не доступний в браузері
+// Vercel Serverless Function для роботи з OpenAI Assistants API
 
 const OpenAI = require('openai');
-const { availableTools, toolDefinitions } = require('./tools');
+const { availableTools } = require('./tools');
+
+// Функція для очікування
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 module.exports = async (req, res) => {
-  // CORS headers для локального розвитку
+  // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Обробка OPTIONS запиту (preflight)
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // Дозволити тільки POST запити
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Отримати API ключ з Environment Variables (безпечно, тільки на сервері)
     const apiKey = process.env.OPENAI_API_KEY;
-    // Використовуємо GPT-4o-mini - швидка і економна модель
-    const modelName = process.env.AI_MODEL || 'gpt-4o-mini';
+    const assistantId = process.env.OPENAI_ASSISTANT_ID;
 
-    if (!apiKey) {
-      return res.status(500).json({ 
-        error: 'OpenAI API key не налаштовано на сервері' 
-      });
+    if (!apiKey || !assistantId) {
+      return res.status(500).json({ error: 'OpenAI API key або Assistant ID не налаштовано' });
     }
 
-    // Отримати повідомлення з запиту
-    const { messages } = req.body;
+    const { message, threadId: clientThreadId } = req.body;
 
-    if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: 'Invalid messages format' });
+    if (!message) {
+      return res.status(400).json({ error: 'Повідомлення не може бути порожнім' });
     }
 
-    // Системний промпт (оптимізовано для економії токенів)
-    const systemPrompt = 'AI асистент VALORANT HUB. Відповідай коротко українською або англійською. Допомагай з питаннями про агентів, мапи, зброю та стратегії. Ти маєш доступ до інструментів для отримання статистики гравців, пошуку в інтернеті, новин, патчів та турнірів. Використовуй їх коли потрібно. Якщо користувач просить актуальну інформацію з інтернету, використовуй webSearch або спеціалізовані функції (searchValorantNews, getPatchNotes, searchTournaments).';
+    const openai = new OpenAI({ apiKey });
 
-    // Ініціалізувати OpenAI клієнт
-    const openai = new OpenAI({
-      apiKey: apiKey,
+    // Створюємо нову розмову (thread), якщо її ID не передано
+    const threadId = clientThreadId || (await openai.beta.threads.create()).id;
+
+    // Додаємо повідомлення користувача до розмови
+    await openai.beta.threads.messages.create(threadId, {
+      role: 'user',
+      content: message,
     });
 
-    // Конвертувати повідомлення в формат OpenAI
-    const formattedMessages = [
-      { role: 'system', content: systemPrompt },
-      ...messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: msg.content,
-      })),
-    ];
-
-    // Конвертувати toolDefinitions в формат OpenAI tools
-    const tools = toolDefinitions.map(tool => ({
-      type: 'function',
-      function: {
-        name: tool.name,
-        description: tool.description,
-        parameters: tool.parameters,
-      },
-    }));
-
-    // Відправити повідомлення до OpenAI з tools
-    let completion = await openai.chat.completions.create({
-      model: modelName,
-      messages: formattedMessages,
-      tools: tools.length > 0 ? tools : undefined,
-      tool_choice: 'auto', // Модель сама вирішує чи викликати функцію
-      temperature: 0.7,
-      max_tokens: 500,
+    // Запускаємо асистента
+    let run = await openai.beta.threads.runs.create(threadId, {
+      assistant_id: assistantId,
     });
 
-    let assistantMessage = completion.choices[0]?.message;
-    let finalResponse = assistantMessage.content || '';
+    // Очікуємо завершення виконання
+    while (['queued', 'in_progress', 'cancelling'].includes(run.status)) {
+      await sleep(500); // Пауза, щоб не спамити запитами
+      run = await openai.beta.threads.runs.retrieve(run.thread_id, run.id);
+    }
 
-    // Обробка function calling
-    if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-      console.log(`[Chat API] Викликано ${assistantMessage.tool_calls.length} інструментів`);
+    // Якщо асистент вимагає викликати інструмент
+    if (run.status === 'requires_action') {
+      const toolCalls = run.required_action.submit_tool_outputs.tool_calls;
+      const toolOutputs = [];
 
-      // Додаємо повідомлення асистента з tool_calls до історії
-      formattedMessages.push(assistantMessage);
-
-      // Виконуємо всі виклики інструментів
-      const toolResults = [];
-      
-      for (const toolCall of assistantMessage.tool_calls) {
+      for (const toolCall of toolCalls) {
         const functionName = toolCall.function.name;
         const functionArgs = JSON.parse(toolCall.function.arguments);
         
-        console.log(`[Chat API] Виклик функції: ${functionName}`, functionArgs);
+        console.log(`[Assistants API] Виклик функції: ${functionName}`, functionArgs);
 
-        try {
-          // Викликаємо функцію з availableTools
-          if (!availableTools[functionName]) {
-            throw new Error(`Функція ${functionName} не знайдена`);
+        if (availableTools[functionName]) {
+          try {
+            const result = await availableTools[functionName](functionArgs);
+            toolOutputs.push({
+              tool_call_id: toolCall.id,
+              output: result, // Assistants API очікує рядок
+            });
+          } catch (error) {
+             console.error(`[Assistants API] Помилка виконання ${functionName}:`, error);
+             toolOutputs.push({
+                tool_call_id: toolCall.id,
+                output: JSON.stringify({ error: `Помилка: ${error.message}` }),
+             });
           }
-
-          const functionResult = await availableTools[functionName](functionArgs);
-          
-          // Додаємо результат до масиву
-          toolResults.push({
-            role: 'tool',
+        } else {
+          toolOutputs.push({
             tool_call_id: toolCall.id,
-            content: functionResult, // Вже JSON string з tools.js
-          });
-        } catch (error) {
-          console.error(`[Chat API] Помилка виконання ${functionName}:`, error);
-          toolResults.push({
-            role: 'tool',
-            tool_call_id: toolCall.id,
-            content: JSON.stringify({ 
-              error: `Помилка виконання функції: ${error.message}` 
-            }),
+            output: JSON.stringify({ error: `Функція ${functionName} не знайдена` }),
           });
         }
       }
 
-      // Додаємо результати виконання функцій до історії
-      formattedMessages.push(...toolResults);
-
-      // Відправляємо результати назад до моделі для формування фінальної відповіді
-      completion = await openai.chat.completions.create({
-        model: modelName,
-        messages: formattedMessages,
-        temperature: 0.7,
-        max_tokens: 500,
+      // Надсилаємо результати виконання інструментів
+      run = await openai.beta.threads.runs.submitToolOutputs(run.thread_id, run.id, {
+        tool_outputs: toolOutputs,
       });
 
-      finalResponse = completion.choices[0]?.message?.content || 'Не вдалося сформувати відповідь';
+      // Знову очікуємо завершення
+      while (['queued', 'in_progress', 'cancelling'].includes(run.status)) {
+        await sleep(500);
+        run = await openai.beta.threads.runs.retrieve(run.thread_id, run.id);
+      }
     }
 
-    if (!finalResponse) {
-      throw new Error('Empty response from AI');
-    }
+    // Якщо виконання успішне, отримуємо відповідь
+    if (run.status === 'completed') {
+      const messages = await openai.beta.threads.messages.list(run.thread_id);
+      const assistantMessage = messages.data.find(m => m.role === 'assistant');
 
-    // Повернути відповідь клієнту
-    return res.status(200).json({
-      message: finalResponse,
-      usage: {
-        prompt_tokens: completion.usage?.prompt_tokens || 0,
-        completion_tokens: completion.usage?.completion_tokens || 0,
-        total_tokens: completion.usage?.total_tokens || 0,
-      },
+      if (assistantMessage && assistantMessage.content[0].type === 'text') {
+        return res.status(200).json({
+          message: assistantMessage.content[0].text.value,
+          threadId: run.thread_id, // Повертаємо ID розмови для продовження
+        });
+      }
+    }
+    
+    // Обробка помилок виконання
+    console.error('Run Error:', run.status, run.last_error);
+    return res.status(500).json({ 
+      error: `Помилка виконання асистента. Статус: ${run.status}`,
+      details: run.last_error?.message || 'Деталі невідомі',
     });
 
   } catch (error) {
     console.error('API Error:', error);
-    
-    // Обробка специфічних помилок
-    let statusCode = 500;
-    let errorMessage = 'Unknown error';
-    
-    if (error instanceof Error) {
-      errorMessage = error.message;
-      
-      // Перевірка на помилки провайдера
-      if (errorMessage.includes('Provider returned error')) {
-        statusCode = 503;
-        errorMessage = 'AI модель тимчасово недоступна. Спробуйте іншу модель або зачекайте кілька хвилин.';
-      }
-    }
-    
-    return res.status(statusCode).json({
-      error: errorMessage,
-    });
+    return res.status(500).json({ error: 'Внутрішня помилка сервера' });
   }
 };
