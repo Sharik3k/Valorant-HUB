@@ -275,11 +275,183 @@ const hybridSearch = async ({ query }) => {
   }
 };
 
+/**
+ * Виконує пошук в інтернеті для отримання актуальної інформації
+ * @param {object} args - Аргументи функції.
+ * @param {string} args.query - Пошуковий запит.
+ * @param {number} [args.maxResults=5] - Максимальна кількість результатів.
+ * @returns {Promise<string>} JSON-рядок з результатами пошуку.
+ */
+const webSearch = async ({ query, maxResults = 5 }) => {
+  try {
+    // Використовуємо DuckDuckGo Instant Answer API (безкоштовний, не потребує ключа)
+    const searchUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
+    
+    const response = await fetch(searchUrl);
+    if (!response.ok) {
+      throw new Error(`Пошук не вдався: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Формуємо результати
+    const results = {
+      query: query,
+      abstract: data.AbstractText || data.Answer || null,
+      abstractSource: data.AbstractSource || null,
+      abstractURL: data.AbstractURL || null,
+      relatedTopics: (data.RelatedTopics || []).slice(0, maxResults).map(topic => ({
+        text: topic.Text || topic.FirstURL || '',
+        url: topic.FirstURL || '',
+      })),
+      results: data.Results ? data.Results.slice(0, maxResults).map(result => ({
+        title: result.Text || '',
+        url: result.FirstURL || '',
+      })) : [],
+    };
+    
+    return JSON.stringify(results);
+  } catch (error) {
+    console.error('Помилка веб-пошуку:', error);
+    // Fallback: використовуємо простий пошук через сервіси
+    try {
+      // Альтернативний метод через пошукові сервіси
+      const searchQuery = encodeURIComponent(query);
+      return JSON.stringify({
+        query: query,
+        message: 'Для отримання актуальної інформації, перевірте наступні джерела:',
+        sources: [
+          `https://www.google.com/search?q=${searchQuery}+valorant`,
+          `https://www.reddit.com/r/VALORANT/search?q=${searchQuery}`,
+          `https://liquipedia.net/valorant/index.php?search=${searchQuery}`,
+        ],
+        note: 'Використовуйте ці посилання для пошуку актуальної інформації',
+      });
+    } catch (fallbackError) {
+      return JSON.stringify({ 
+        error: `Помилка веб-пошуку: ${error.message}` 
+      });
+    }
+  }
+};
+
+/**
+ * Шукає новини про Valorant
+ * @param {object} args - Аргументи функції.
+ * @param {string} [args.topic] - Тема новин (наприклад, "patch", "tournament", "agent").
+ * @returns {Promise<string>} JSON-рядок з новинами.
+ */
+const searchValorantNews = async ({ topic = '' }) => {
+  try {
+    const searchQuery = topic ? `valorant ${topic}` : 'valorant news';
+    const results = await webSearch({ query: searchQuery, maxResults: 5 });
+    const parsed = JSON.parse(results);
+    
+    return JSON.stringify({
+      topic: topic || 'general',
+      news: parsed.abstract ? [parsed.abstract] : [],
+      sources: parsed.relatedTopics || parsed.results || [],
+      lastUpdated: new Date().toISOString(),
+    });
+  } catch (error) {
+    return JSON.stringify({ 
+      error: `Помилка пошуку новин: ${error.message}` 
+    });
+  }
+};
+
+/**
+ * Отримує інформацію про останні патчі Valorant
+ * @returns {Promise<string>} JSON-рядок з інформацією про патчі.
+ */
+const getPatchNotes = async () => {
+  try {
+    // Шукаємо інформацію про патчі
+    const results = await webSearch({ query: 'valorant latest patch notes 2024', maxResults: 5 });
+    const parsed = JSON.parse(results);
+    
+    return JSON.stringify({
+      patchInfo: parsed.abstract || 'Інформація про патчі',
+      sources: [
+        ...(parsed.relatedTopics || []),
+        { title: 'Офіційний сайт Riot Games', url: 'https://playvalorant.com/en-us/news/' },
+        { title: 'Valorant Wiki', url: 'https://valorant.fandom.com/wiki/Patch_Notes' },
+      ],
+      note: 'Для детальної інформації про патчі перевірте офіційний сайт Riot Games',
+    });
+  } catch (error) {
+    return JSON.stringify({ 
+      error: `Помилка отримання патчів: ${error.message}` 
+    });
+  }
+};
+
+/**
+ * Шукає інформацію про турніри Valorant
+ * @param {object} args - Аргументи функції.
+ * @param {string} [args.tournament] - Назва турніру (наприклад, "Champions", "Masters").
+ * @returns {Promise<string>} JSON-рядок з інформацією про турніри.
+ */
+const searchTournaments = async ({ tournament = '' }) => {
+  try {
+    const searchQuery = tournament 
+      ? `valorant ${tournament} tournament 2024` 
+      : 'valorant tournaments 2024';
+    
+    const results = await webSearch({ query: searchQuery, maxResults: 5 });
+    const parsed = JSON.parse(results);
+    
+    return JSON.stringify({
+      tournament: tournament || 'all',
+      info: parsed.abstract || 'Інформація про турніри',
+      sources: parsed.relatedTopics || parsed.results || [],
+      officialSources: [
+        { title: 'VCT Official', url: 'https://valorantesports.com/' },
+        { title: 'Liquipedia Valorant', url: 'https://liquipedia.net/valorant/Main_Page' },
+      ],
+    });
+  } catch (error) {
+    return JSON.stringify({ 
+      error: `Помилка пошуку турнірів: ${error.message}` 
+    });
+  }
+};
+
+/**
+ * Отримує актуальну інформацію про агента
+ * @param {object} args - Аргументи функції.
+ * @param {string} args.agentName - Назва агента.
+ * @returns {Promise<string>} JSON-рядок з інформацією про агента.
+ */
+const getAgentInfo = async ({ agentName }) => {
+  try {
+    const searchQuery = `valorant ${agentName} agent abilities 2024`;
+    const results = await webSearch({ query: searchQuery, maxResults: 3 });
+    const parsed = JSON.parse(results);
+    
+    return JSON.stringify({
+      agent: agentName,
+      info: parsed.abstract || `Інформація про агента ${agentName}`,
+      sources: parsed.relatedTopics || parsed.results || [],
+      officialSource: `https://playvalorant.com/en-us/agents/${agentName.toLowerCase()}/`,
+    });
+  } catch (error) {
+    return JSON.stringify({ 
+      error: `Помилка отримання інформації про агента: ${error.message}` 
+    });
+  }
+};
+
 // Словник доступних інструментів
 const availableTools = {
   getPlayerStats,
   getPlayerMatches,
   hybridSearch,
+  webSearch,
+  searchValorantNews,
+  getPatchNotes,
+  searchTournaments,
+  getAgentInfo,
 };
 
 // Специфікація інструментів для моделі OpenAI
@@ -336,6 +508,72 @@ const toolDefinitions = [
         },
       },
       required: ['query'],
+    },
+  },
+  {
+    name: 'webSearch',
+    description: 'Виконує пошук в інтернеті для отримання актуальної інформації. Використовуй коли користувач просить знайти щось в інтернеті, актуальні новини, або інформацію якої немає в базі знань. Це дозволяє отримувати свіжі дані з інтернету.',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: 'Пошуковий запит для пошуку в інтернеті.',
+        },
+        maxResults: {
+          type: 'number',
+          description: 'Максимальна кількість результатів (1-10). За замовчуванням 5.',
+        },
+      },
+      required: ['query'],
+    },
+  },
+  {
+    name: 'searchValorantNews',
+    description: 'Шукає актуальні новини про Valorant. Використовуй коли користувач питає про новини, оновлення, або актуальні події в грі.',
+    parameters: {
+      type: 'object',
+      properties: {
+        topic: {
+          type: 'string',
+          description: 'Тема новин (наприклад: "patch", "tournament", "agent", "meta", "esports"). За замовчуванням - загальні новини.',
+        },
+      },
+    },
+  },
+  {
+    name: 'getPatchNotes',
+    description: 'Отримує інформацію про останні патчі та оновлення Valorant. Використовуй коли користувач питає про патчі, оновлення, зміни в грі, баланс, або нові функції.',
+    parameters: {
+      type: 'object',
+      properties: {},
+    },
+  },
+  {
+    name: 'searchTournaments',
+    description: 'Шукає інформацію про турніри Valorant (VCT, Champions, Masters тощо). Використовуй коли користувач питає про турніри, змагання, команди, або результати матчів.',
+    parameters: {
+      type: 'object',
+      properties: {
+        tournament: {
+          type: 'string',
+          description: 'Назва турніру (наприклад: "Champions", "Masters", "Challengers"). За замовчуванням - всі турніри.',
+        },
+      },
+    },
+  },
+  {
+    name: 'getAgentInfo',
+    description: 'Отримує актуальну інформацію про агента Valorant з інтернету. Використовуй коли потрібна свіжа інформація про здібності агента, зміни в патчах, або актуальна мета.',
+    parameters: {
+      type: 'object',
+      properties: {
+        agentName: {
+          type: 'string',
+          description: 'Назва агента (наприклад: "Jett", "Sage", "Omen").',
+        },
+      },
+      required: ['agentName'],
     },
   },
 ];
