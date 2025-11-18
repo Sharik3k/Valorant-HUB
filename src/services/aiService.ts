@@ -1,93 +1,42 @@
-// AI Service для чат-асистента
-// 🔒 БЕЗПЕЧНА версія - використовує Vercel Serverless Function
-// API ключ зберігається на сервері і не доступний в браузері
+// AI Service для чат-асистента (v2 - Assistants API)
 
 export interface Message {
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant';
   content: string;
 }
 
-interface APIResponse {
+export interface AIResponse {
   message: string;
-  usage?: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-  error?: string;
-  retryAfter?: number;
+  threadId: string;
 }
 
 class AIService {
-  private apiEndpoint: string;
-  private lastRequestTime: number = 0;
-  private minRequestInterval: number = 2000; // Мінімум 2 секунди між запитами
+  private apiEndpoint: string = '/api/chat';
 
-  constructor() {
-    // Використовуємо Vercel Serverless Function
-    // В продакшені: /api/chat
-    // Локально: http://localhost:5173/api/chat (через Vite proxy)
-    this.apiEndpoint = '/api/chat';
-  }
-
-  private async delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  async sendMessage(messages: Message[], retryCount: number = 0): Promise<string> {
-    // Обмеження частоти запитів
-    const now = Date.now();
-    const timeSinceLastRequest = now - this.lastRequestTime;
-    if (timeSinceLastRequest < this.minRequestInterval) {
-      await this.delay(this.minRequestInterval - timeSinceLastRequest);
-    }
-    this.lastRequestTime = Date.now();
-
+  async sendMessage(message: string, threadId: string | null): Promise<AIResponse> {
     try {
       const response = await fetch(this.apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify({ message, threadId }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        
-        // Обробка 429 (Rate Limit)
-        if (response.status === 429) {
-          const retryAfter = errorData.retryAfter || 60;
-          
-          if (retryCount < 2) {
-            // Спробувати ще раз після затримки
-            console.log(`Rate limit hit. Retrying after ${retryAfter} seconds...`);
-            await this.delay(retryAfter * 1000);
-            return this.sendMessage(messages, retryCount + 1);
-          }
-          
-          throw new Error(
-            errorData.error || 
-            '⏱️ Перевищено ліміт запитів. Будь ласка, зачекайте 1-2 хвилини перед наступним запитом.'
-          );
-        }
-        
-        throw new Error(
-          errorData.error || 
-          `API помилка: ${response.status} ${response.statusText}`
-        );
+        const errorData = await response.json().catch(() => ({ error: 'Не вдалося розпарсити помилку' }));
+        throw new Error(errorData.error || `Помилка сервера: ${response.status}`);
       }
 
-      const data: APIResponse = await response.json();
-      
-      if (!data.message) {
-        throw new Error('Отримано пусту відповідь від AI');
+      const data: AIResponse = await response.json();
+      if (!data.message || !data.threadId) {
+        throw new Error('Неповна відповідь від сервера');
       }
 
-      return data.message;
+      return data;
     } catch (error) {
+      console.error('AI Service Error:', error);
       if (error instanceof Error) {
-        console.error('AI Service Error:', error);
         throw error;
       }
       throw new Error('Невідома помилка при зверненні до AI');
@@ -95,7 +44,7 @@ class AIService {
   }
 
   isConfigured(): boolean {
-    // Завжди true, оскільки конфігурація на сервері
+    // Конфігурація перевіряється на сервері
     return true;
   }
 

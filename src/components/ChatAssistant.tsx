@@ -15,6 +15,7 @@ export default function ChatAssistant() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [threadId, setThreadId] = useState<string | null>(null); // Стан для ID розмови
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -38,17 +39,13 @@ export default function ChatAssistant() {
   }, [isOpen]);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
-
-    if (!aiService.isConfigured()) {
-      setError('OpenRouter API ключ не налаштовано. Перевірте .env файл.');
-      return;
-    }
+    const trimmedInput = inputValue.trim();
+    if (!trimmedInput || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputValue.trim(),
+      content: trimmedInput,
       timestamp: new Date(),
     };
 
@@ -58,31 +55,23 @@ export default function ChatAssistant() {
     setError(null);
 
     try {
-      // Відправляємо тільки останні 5 повідомлень для економії токенів
-      const conversationMessages = messages
-        .filter(msg => msg.id !== '1')
-        .slice(-5) // Тільки останні 5 повідомлень
-        .map(({ role, content }) => ({ role, content }));
-      
-      const response = await aiService.sendMessage([
-        ...conversationMessages,
-        { role: userMessage.role, content: userMessage.content }
-      ]);
+      const response = await aiService.sendMessage(trimmedInput, threadId);
 
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response,
+        content: response.message,
         timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      setThreadId(response.threadId); // Зберігаємо ID розмови
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Помилка при отриманні відповіді';
       setError(errorMessage);
       console.error('Chat error:', err);
-      
-      // Додати повідомлення про помилку в чат
+
       const errorChatMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -109,6 +98,7 @@ export default function ChatAssistant() {
       content: '👋 Привіт! Я AI асистент VALORANT HUB. Можу допомогти з питаннями про агентів, мапи, зброю та стратегії. Як можу допомогти?',
       timestamp: new Date(),
     }]);
+    setThreadId(null); // Скидаємо розмову
     setError(null);
   };
 
@@ -323,7 +313,7 @@ export default function ChatAssistant() {
                 color="text.secondary"
                 sx={{ display: 'block', mt: 1, textAlign: 'center' }}
               >
-                Powered by {aiService.getModel().split('/')[1]}
+                Powered by {aiService.getModel()}
               </Typography>
             </Box>
           </>
