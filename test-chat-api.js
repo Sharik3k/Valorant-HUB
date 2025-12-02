@@ -118,10 +118,7 @@ async function runTests() {
       
       if (result.status === 200) {
         console.log('   ✅ Успішно!');
-        console.log(`   📥 Відповідь: ${result.data.message?.substring(0, 100)}...`);
-        if (result.data.usage) {
-          console.log(`   📊 Токени: ${result.data.usage.total_tokens} (prompt: ${result.data.usage.prompt_tokens}, completion: ${result.data.usage.completion_tokens})`);
-        }
+        console.log(`   📥 Відповідь: ${result.data.reply?.substring(0, 100)}...`);
       } else {
         console.log(`   ❌ Помилка: ${result.status}`);
         console.log(`   📥 Відповідь: ${JSON.stringify(result.data)}`);

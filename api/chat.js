@@ -1,6 +1,8 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -8,37 +10,28 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { message } = req.body;
+    const { messages } = req.body;
 
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
+    if (!messages) {
+      return res.status(400).json({ error: 'Messages are required' });
     }
 
-    const model = genAI.getGenerativeModel({ model: process.env.AI_MODEL || 'gemini-1.5-flash' });
+    const systemMessage = {
+      role: 'system',
+      content: 'You are a helpful AI assistant for VALORANT HUB. Your name is Astra. You must answer only in Ukrainian. Your main goal is to help players with questions about agents, maps, weapons, and strategies in Valorant. You should be friendly and helpful.',
+    };
 
-    const chat = model.startChat({
-      history: [
-        {
-          role: 'user',
-          parts: [{ text: 'You are a helpful AI assistant for VALORANT HUB. Your name is Astra. You must answer only in Ukrainian. Your main goal is to help players with questions about agents, maps, weapons, and strategies in Valorant. You should be friendly and helpful.' }],
-        },
-        {
-          role: 'model',
-          parts: [{ text: 'Привіт! Я Астра, AI-асистент VALORANT HUB. Чим можу допомогти сьогодні?' }],
-        },
-      ],
-      generationConfig: {
-        maxOutputTokens: 1000,
-      },
+    const completion = await openai.chat.completions.create({
+      model: process.env.AI_MODEL || 'gpt-4o-mini',
+      messages: [systemMessage, ...messages],
+      max_tokens: 1000,
     });
 
-    const result = await chat.sendMessage(message);
-    const response = await result.response;
-    const text = response.text();
+    const reply = completion.choices[0].message.content;
 
-    res.status(200).json({ reply: text });
+    res.status(200).json({ reply });
   } catch (error) {
     console.error('Error processing chat request:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
-}
+};
