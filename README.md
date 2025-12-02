@@ -1,12 +1,11 @@
 # 🎮 VALORANT HUB - AI Assistant Demo
 
 > Демонстраційний проект з використанням GenAI фреймворків для створення інтелектуального асистента
-
-(https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/Valorant-HUB)
+> Deploy:(https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/Valorant-HUB)
 
 ## 🚀 Особливості
 
-- **🤖 AI Асистент** - Інтелектуальний чат-бот на базі Google Gemini 2.0 Flash
+- **🤖 AI Асистент** - Інтелектуальний чат-бот на базі Gpt 4
 - **🛠️ Function Calling** - Агент може викликати зовнішні інструменти
 - **🔒 Безпечна архітектура** - API ключі зберігаються на сервері
 - **⚡ Serverless** - Використовує Vercel Serverless Functions
@@ -15,7 +14,7 @@
 ## 📋 Вимоги завдання
 
 ✅ **1. Репозиторій на GitHub** - Проект розміщено на GitHub  
-✅ **2. Підключення до AI API** - Використовується Google Gemini API  
+✅ **2. Підключення до AI API** - Використовується Gpt 4  
 ✅ **3. Деплой на Vercel** - Проект задеплоєно на Vercel  
 
 ## 🏗️ Архітектура
