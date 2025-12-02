@@ -1,7 +1,7 @@
 # 🎮 VALORANT HUB - AI Assistant Demo
 
 > Демонстраційний проект з використанням GenAI фреймворків для створення інтелектуального асистента
-> Deploy:(https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/Valorant-HUB)
+> https://valoranthub-devs-github-speckit.vercel.app/
 
 ## 🚀 Особливості
 
