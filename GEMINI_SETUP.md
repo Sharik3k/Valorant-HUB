@@ -1,19 +1,18 @@
-# 🤖 Швидке Налаштування Gemini AI
+# 🤖 Швидке Налаштування OpenAI GPT
 
 ## 📋 Що Потрібно
 
-1. **Gemini API Key** (безкоштовно)
+1. **OpenAI API Key**
 2. **5 хвилин** часу
 
 ---
 
 ## 🚀 Крок 1: Отримати API Ключ
 
-1. Відкрийте: https://aistudio.google.com/app/apikey
-2. Увійдіть через Google акаунт
-3. Натисніть **"Create API Key"**
-4. Виберіть **"Create API key in new project"**
-5. Скопіюйте ключ (починається з `AIza...`)
+1. Відкрийте: https://platform.openai.com/api-keys
+2. Увійдіть у свій OpenAI акаунт
+3. Натисніть **"Create new secret key"**
+4. Скопіюйте ключ (починається з `sk-...`)
 
 ⚠️ **Важливо:** Зберігайте ключ в безпечному місці!
 
@@ -24,9 +23,9 @@
 ### Створіть `.env` файл в корені проекту:
 
 ```env
-# Google Gemini API
-GEMINI_API_KEY=AIzaSy...ваш-ключ-тут
-AI_MODEL=gemini-2.0-flash-exp
+# OpenAI API
+OPENAI_API_KEY=sk-...ваш-ключ-тут
+AI_MODEL=gpt-4o
 
 # Django Backend (якщо потрібно)
 VITE_DJANGO_BACKEND_URL=http://localhost:8000
@@ -56,8 +55,8 @@ cd ..
 
 | Name | Value |
 |------|-------|
-| `GEMINI_API_KEY` | `AIzaSy...ваш-ключ` |
-| `AI_MODEL` | `gemini-2.0-flash-exp` |
+| `OPENAI_API_KEY` | `sk-...ваш-ключ` |
+| `AI_MODEL` | `gpt-4o` |
 
 5. Натисніть **Save**
 6. Перейдіть в **Deployments** → **Redeploy**
@@ -88,9 +87,9 @@ npm run dev
 
 ## 🎯 Що Тепер Працює
 
-- ✅ AI чат-асистент з Gemini 2.0 Flash
-- ✅ 1500 безкоштовних запитів на день
-- ✅ Швидкі відповіді (1-2 секунди)
+- ✅ AI чат-асистент на OpenAI GPT-4o
+- ✅ Висока якість відповідей
+- ✅ Стабільний API
 - ✅ Контекстні розмови
 - ✅ Автоматична обробка помилок
 
@@ -98,11 +97,11 @@ npm run dev
 
 ## 🐛 Troubleshooting
 
-### Помилка: "Gemini API key не налаштовано"
+### Помилка: "OpenAI API key не налаштовано"
 
 **Локально:**
 - Перевірте що `.env` файл в корені проекту
-- Перевірте що `GEMINI_API_KEY` правильно вказано
+- Перевірте що `OPENAI_API_KEY` правильно вказано
 - Перезапустіть dev сервер
 
 **На Vercel:**
@@ -112,7 +111,7 @@ npm run dev
 ### Помилка: "API key expired" або "API key invalid"
 
 - Перевірте що ключ скопійовано повністю
-- Створіть новий ключ на https://aistudio.google.com/app/apikey
+- Створіть новий ключ на https://platform.openai.com/api-keys
 - Оновіть змінну оточення
 
 ### Чат не відповідає
@@ -126,14 +125,14 @@ npm run dev
 
 ## 📚 Додаткова Інформація
 
-- **Документація Gemini:** https://ai.google.dev/docs
-- **Ліміти API:** https://ai.google.dev/pricing
+- **Документація OpenAI:** https://platform.openai.com/docs
+- **Ціни:** https://openai.com/api/pricing
 - **Детальна документація:** [AI_RATE_LIMITS.md](./AI_RATE_LIMITS.md)
 
 ---
 
 ## 🎉 Готово!
 
-Тепер ваш AI асистент працює на **Google Gemini 2.0 Flash** - найшвидшій і найновішій моделі від Google!
+Тепер ваш AI асистент працює на **OpenAI GPT-4o**!
 
 **Питання?** Перевірте [AI_RATE_LIMITS.md](./AI_RATE_LIMITS.md) для детальної інформації.

@@ -1,7 +1,7 @@
 {
   "name": "valorant-hub",
   "version": "1.0.0",
-  "description": "Valorant HUB - AI-powered gaming assistant with Gemini API",
+  "description": "Valorant HUB - AI-powered gaming assistant with OpenAI GPT API",
   "private": true,
   "scripts": {
     "dev:frontend": "cd frontend && npm run dev",
@@ -10,7 +10,7 @@
     "install:frontend": "cd frontend && npm install",
     "install:backend": "cd backend && npm install",
     "install:api": "cd api && npm install",
-    "vercel-build": "npm run build:frontend"
+    "vercel-build": "npm run install:frontend && npm run build:frontend"
   },
   "keywords": [
     "valorant",
@@ -25,7 +25,7 @@
     "node": "20.x"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1"
+    "openai": "^4.52.7"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

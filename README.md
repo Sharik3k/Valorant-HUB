@@ -39,8 +39,8 @@
                                      │ API Key (Server-side)
                                      ▼
                           ┌──────────────────────┐
-                          │   Google Gemini API  │
-                          │   (2.0 Flash Model)  │
+                          │     OpenAI API       │
+                          │     (GPT-4o model)   │
                           └──────────────────────┘
 ```
 
@@ -96,11 +96,11 @@
 
 ### Backend:
 - **Vercel Serverless Functions** - Безсерверна архітектура
-- **GPT 4** - AI модель
-- **@GPT SDK** - SDK для GPT
+- **OpenAI GPT-4o** - Основна AI модель
+- **HTTP API (fetch)** або OpenAI SDK
 
 ### APIs:
-- **Google Gemini API** - Головна AI модель
+- **OpenAI API** - Головна AI модель
 - **henrikdev.xyz API** - Valorant статистика
 
 ## 🔒 Безпека
@@ -114,8 +114,8 @@
 ## 📊 Оптимізація
 
 - **Економія токенів**: Короткий системний промпт
-- **Швидкість**: Gemini 2.0 Flash - одна з найшвидших моделей
-- **Безкоштовно**: Використовується безкоштовний tier Gemini API
+- **Швидкість**: GPT-4o дає швидкі відповіді з високою якістю
+- **Квоти**: Дотримуйтесь лімітів OpenAI API, використовуйте кешування там де можливо
 - **Паралельність**: Інструменти виконуються паралельно
 
 ## 📝 Ліцензія
@@ -128,7 +128,7 @@ MIT License - використовуйте вільно для навчання 
 
 ## 🙏 Подяки
 
-- Google за Gemini API
+- OpenAI за API
 - Riot Games за Valorant
 - henrikdev.xyz за Valorant API
 - Vercel за безкоштовний хостинг

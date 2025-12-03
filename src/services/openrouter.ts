@@ -55,11 +55,6 @@ export const POPULAR_MODELS = [
     description: 'Fast and efficient, great for general conversation',
   },
   {
-    id: 'google/gemini-flash-1.5',
-    name: 'Gemini Flash 1.5',
-    description: 'Fast and intelligent from Google',
-  },
-  {
     id: 'openai/gpt-3.5-turbo',
     name: 'GPT-3.5 Turbo',
     description: 'OpenAI\'s efficient model',
