@@ -38,4 +38,4 @@ coverage/
 .next
 .cache
 .temp
-dist/
+# dist/
