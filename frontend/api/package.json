@@ -1,0 +1,18 @@
+{
+  "name": "valorant-hub-api",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "chat.js",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "@vercel/node": "^4.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "openai": "^4.0.0"
+  },
+  "devDependencies": {
+    "vercel": "^28.0.0"
+  }
+}

@@ -1,13 +1,23 @@
-const OpenAI = require('openai');
+import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+export default async function handler(req, res) {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    return res.status(200).end();
+  }
 
-module.exports = async (req, res) => {
+  // Only allow POST requests
   if (req.method !== 'POST') {
+    res.setHeader('Allow', ['POST']);
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
+
+  // Set CORS headers for actual request
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Content-Type', 'application/json');
 
   try {
     const body = req.body || {};
@@ -30,6 +40,10 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Messages are required' });
     }
 
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
     const completion = await openai.chat.completions.create({
       model: process.env.AI_MODEL || 'gpt-4o',
       messages: chatMessages,
@@ -39,9 +53,12 @@ module.exports = async (req, res) => {
     const reply = completion.choices?.[0]?.message?.content || '';
     const outThreadId = incomingThreadId || Date.now().toString();
 
-    res.status(200).json({ message: reply, threadId: outThreadId });
+    return res.status(200).json({ message: reply, threadId: outThreadId });
   } catch (error) {
     console.error('Error processing chat request:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ 
+      error: 'Internal Server Error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
-};
+}
